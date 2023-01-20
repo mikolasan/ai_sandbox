@@ -1,0 +1,88 @@
+\documentclass[draft]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[T2A]{fontenc}
+\usepackage[utf8x]{inputenc}
+\usepackage[russian, english]{babel}
+
+\def\RealSet{\mathbb{R}}
+
+\begin{document}
+
+\section{Backpropagation explained}
+
+\subsection{Define Neural Networks}
+
+So let's take a closer look on Neural Networks. We will start by reviewing Artificial Neural Networks (ANN), because they seem simple enough to start diving deep into this topic.
+
+Frequently NN is defined as a set of functions working on matrices and vectors. It's very bulky, but let's go thorough it. I'll use definition from \cite{Ostwald:2021}
+
+A multivariate vector-valued function
+\[
+f \colon \RealSet^{n_0} \rightarrow \RealSet^{n_k}, x\mapsto f(x)=:y
+\]
+is called a k-layered neural network, if $f$ is of the form
+\begin{multline}
+f \colon \RealSet^{n_0} \xrightarrow{\Phi_{W^1}^1} \RealSet^{n_1}
+\xrightarrow{\Sigma^1} \RealSet^{n_1} \\
+\RealSet^{n_1} \xrightarrow{\Phi_{W^2}^2} \RealSet^{n_2}
+\xrightarrow{\Sigma^2} \RealSet^{n_3} \cdots \\
+\cdots \RealSet^{n_{k-1}}
+\xrightarrow{\Phi_{W^k}^k} \RealSet^{n_k}
+\xrightarrow{\Sigma^k} \RealSet^{n_k}
+\end{multline}
+where for $l=1,\ldots,k$
+\[
+\Phi_{W^l}^l \colon \RealSet^{n_{l-1}} \rightarrow \RealSet^{n_l}, 
+a^{l-1}\mapsto \Phi_{W^l}^l(a^{l-1}) :=W^l \cdot \begin{pmatrix} a^{l-1} \\ 1 \end{pmatrix} =: z^l
+\]
+are potential functions and
+\[
+\Sigma^l \colon \RealSet^{n_{l}} \rightarrow \RealSet^{n},
+z^l \rightarrow \Sigma^l(z^l) =: a^l
+\]
+are component-wise activation functions. For $x\in \RealSet^{n_0}$, a $k$-layered neural network takes on the value
+\[
+f(x) := \Sigma^k( \Phi_{W^k}^k( \Sigma^{k-1}( \Phi_{W^{k-1}}^{k-1}(\cdots \Sigma^1( \Phi_{W^1}^1(x) ) \cdots) ) ) ) \in \RealSet^{n_k}
+\]
+
+I really like the following elegant definition through tuples from \cite{Karner:2022}. Let $d, L \in \mathbb{N}$. A neural network (NN) with input dimension $d$ and $L$ layers is
+a sequence of matrix-vector tuples
+\[
+\Phi := ((A_1, b_1), (A_2, b_2), \ldots , (A_L, b_L)),
+\]
+
+where $N_0 := d$ and $N_1, \ldots , N_L \in \mathbb{N}$, and where $A_j \in \RealSet^{N_{j}\times N_{j-1}}$ and $b_j \in \RealSet^{N_j}$ for $j = 1, \ldots, L$. The number $N_L$ is referred to as the output dimension.
+
+The output $x_{(L)}\in \RealSet^{N_L}$ results from
+\begin{align}
+x^{(0)} &:= x,\\
+x^{(j)} &:= \varrho(A_j x^{(j-1)} + b_j) \text{for $j=1,\dots,L-1$},\\
+x^{(L)} &:= A_L x^{(L-1)} + b_L.
+\end{align}
+Here $\varrho(x) := \max {0,x}$, for $x\in\RealSet$ is understood to act component-wise on vector-valued inputs, i.e., for $y=(y^1,\dots,y^m)\in\RealSet^m$, $\varrho(y) := (\varrho(y^1),\dots,\varrho(y^m))$
+
+\subsection{Gradient descent}
+
+Again repeat definitions from \cite{Karner:2022}.
+
+Loss function $\ell \colon \RealSet^q \times  \RealSet^q \rightarrow  \RealSet^{+}$, for $q \in \mathbb{N}$, which could be the square loss $\ell(y,y^\prime)=\| y - y^\prime \|^2$. Then for $M \in \mathbb{N}$, we define $\mathcal{R} \colon (\RealSet^q)^M \times (\RealSet^q)^M \rightarrow \RealSet$ by
+\[
+\hat{\mathcal{R}} (Y,\hat Y) = \frac1{M} \sum_{i=1}^M \ell(Y_i, \hat Y_i)
+\]
+
+for all $Y=(Y_i)_{i=1}^M \subset \RealSet^q$, $\hat Y = (\hat Y_i)_{i=1}^M \subset \RealSet^q$
+
+Let $j \in {1,\ldots,L}$. The exact gradient descent update of the biases in the $j$-th layer is given by $u_j^b$, which is defined as
+
+\begin{align}
+u_j^b &:= \frac1{M} \sum_{i=1}^M u_{j,i}^b, \text{where} \\
+u_{j,i}^b &:= I_j(x_i)A_{j+1}^T I_{j+1}(x_i) A_{j+2}^T \cdots I_{L-1}(x_i)A_L^T \ell^\prime(y_i, R(\Phi_j)(x_i))
+\end{align}
+for $i\in {1,\ldots,M}$, where $I_j(x)\in{0,1}^{N_j}$ with $(I_j(x))_k = 1$ if and only if $R(\Phi_j)(x)\geqslant~0$
+
+
+\bibliographystyle{apalike}
+\bibliography{bibfile}
+
+\end{document}
