@@ -11,11 +11,16 @@
 
 \section{Backpropagation explained}
 
-\subsection{Define Neural Networks}
 
 So let's take a closer look on Neural Networks. We will start by reviewing Artificial Neural Networks (ANN), because they seem simple enough to start diving deep into this topic.
 
-Frequently NN is defined as a set of functions working on matrices and vectors. It's very bulky, but let's go thorough it. I'll use definition from \cite{Ostwald:2021}
+
+\subsection{Define Neural Networks}
+
+Frequently NN is defined as a set of functions working on matrices and vectors. It's very bulky, but let's go thorough it. 
+
+\paragraph{Functional notation}
+I'll use definition from \cite{Ostwald:2021}
 
 A multivariate vector-valued function
 \[
@@ -46,6 +51,17 @@ are component-wise activation functions. For $x\in \RealSet^{n_0}$, a $k$-layere
 f(x) := \Sigma^k( \Phi_{W^k}^k( \Sigma^{k-1}( \Phi_{W^{k-1}}^{k-1}(\cdots \Sigma^1( \Phi_{W^1}^1(x) ) \cdots) ) ) ) \in \RealSet^{n_k}
 \]
 
+Then the weight matrix-variate neural network function $f_x$ of $f$ is deifned as the function
+\[
+f_x \colon \RealSet^{n_1 \times (n_0 + 1)} \times \cdots \times \RealSet^{n_k \times (n_{k-1} + 1)} \rightarrow \RealSet^{n_k}
+\]
+
+\begin{multline}
+(W^1,\dots,W^k)\mapsto f_x(W^1,\dots,W^k) := \\
+\Sigma^k( \Phi^k( W^k, \underbrace{\Sigma^{k-1}( \Phi^{k-1}( W^{k-1}, \cdots (W^2, \overbrace{\Sigma^1( \Phi^1(W^1, x))}^{a^1}) \cdots) ) }_{a^{k-1}} ))
+\end{multline}
+
+\paragraph{Matrix notation}
 I really like the following elegant definition through tuples from \cite{Karner:2022}. Let $d, L \in \mathbb{N}$. A neural network (NN) with input dimension $d$ and $L$ layers is
 a sequence of matrix-vector tuples
 \[
@@ -54,16 +70,72 @@ a sequence of matrix-vector tuples
 
 where $N_0 := d$ and $N_1, \ldots , N_L \in \mathbb{N}$, and where $A_j \in \RealSet^{N_{j}\times N_{j-1}}$ and $b_j \in \RealSet^{N_j}$ for $j = 1, \ldots, L$. The number $N_L$ is referred to as the output dimension.
 
-The output $x_{(L)}\in \RealSet^{N_L}$ results from
+
+\subsection{Forward pass}
+
+\paragraph{Functional notation}
+The last column of $W^l$ encodes the biases of the neurons in layer $l$. The activation of neuron $i$ in layer $l$ for $i = 1,\dots,n_l$ and $l = 1,\dots,k$ is given by
+\[
+a^l_i = \sigma \left( \sum_{j=1}^{n_{l-1}} w_{ij}^l a_j^{l-1} + w_{i,n_{l-1}+1} \right) \in \RealSet^{n_l}
+\]
+
+
+\paragraph{Matrix notation}
+For a NN $\Phi$ and a domain $\Omega\subset\RealSet^d$, we define the associated realisation of the NN $\Phi$ as
+\[
+R(\Phi) \colon \Omega \rightarrow \RealSet^{N_L} \colon x \mapsto x^{(L)}:=R(\Phi)(x),
+\]
+The output $x^{(L)}\in \RealSet^{N_L}$ results from
 \begin{align}
 x^{(0)} &:= x,\\
-x^{(j)} &:= \varrho(A_j x^{(j-1)} + b_j) \text{for $j=1,\dots,L-1$},\\
+x^{(j)} &:= \varrho(A_j x^{(j-1)} + b_j) \text{ for $j=1,\dots,L-1$}, \label{karner-forward-j}\\
 x^{(L)} &:= A_L x^{(L-1)} + b_L.
 \end{align}
-Here $\varrho(x) := \max {0,x}$, for $x\in\RealSet$ is understood to act component-wise on vector-valued inputs, i.e., for $y=(y^1,\dots,y^m)\in\RealSet^m$, $\varrho(y) := (\varrho(y^1),\dots,\varrho(y^m))$
+Here $\varrho(x) := \max \{0,x\}$, for $x\in\RealSet$ is understood to act component-wise on vector-valued inputs, i.e., for $y=(y^1,\dots,y^m)\in\RealSet^m$, $\varrho(y) := (\varrho(y^1),\dots,\varrho(y^m))$
+
+I don't understand why authors decided to take this route and go against more or less canonical notation. We need to swap indices up and down and rename some letters this way:
+\begin{align}
+x^{(j)} &\mapsto a^j \\
+A_j &\mapsto W^j \\
+b_j &\mapsto b^j \\
+\varrho(.) &\mapsto f(.) \\
+\end{align}
+
+As a result we can rewrite~\eqref{karner-forward-j} and get very familiar two step form
+\begin{align}
+z^l &= W^l \cdot a^{l-1} + b^l \\
+a^l &= f(z^l)
+\end{align}
+
 
 \subsection{Gradient descent}
 
+\paragraph{Functional notation}
+A multi-matrix-variate real-valued function of the form
+\[
+c_{xy} \colon \RealSet^{n_1 \times (n_0 + 1)} \times \cdots \times \RealSet^{n_k \times (n_{k-1} + 1)} \rightarrow \RealSet,
+\]
+\[
+(W^1,\dots,W^k) \mapsto c_{xy}(W^1,\dots,W^k) := c_y(f_x(W^1,\dots,W^k))
+\]
+
+Select $\mathcal{W}^{(0)}$ and $\alpha > 0$ appropriately. For $j = 1,2,\dots,$(until convergence), set
+\[
+\mathcal{W}^{(j)} := \mathcal{W}^{(j-1)} - \frac{\alpha}{n} \sum_{i=1}^n \nabla c_{x^{(i)}y^{(i)}}(W^1,\dots,W^k),
+\]
+where,
+\[
+\nabla c_{x^{(i)}y^{(i)}}(W^1,\dots,W^k) = \Bigl(\nabla_{W^l} c_{x^{(i)}y^{(i)}}(W^1,\dots,W^k) \Bigr)_{1\leqslant l \leqslant k}
+\]
+denotes the gradient of the $i$-th training exemplar-specific cost function for $i = 1,\dots,n$
+
+Each of these gradients for all $i = 1,\dots,n_l$, $j = 1,\dots,n_{l-1} + 1$, and $l = 1,\dots,k$ comprises the partial derivatives
+\[
+\nabla_{W^l} c_{xy}(W^1,\dots,W^k) = \Biggl( \frac{\partial}{\partial w_{ij}^l} c_{xy}(W^1,\dots,W^k) \Biggr)_{ij}
+\]
+
+
+\paragraph{Matrix notation}
 Again repeat definitions from \cite{Karner:2022}.
 
 Loss function $\ell \colon \RealSet^q \times  \RealSet^q \rightarrow  \RealSet^{+}$, for $q \in \mathbb{N}$, which could be the square loss $\ell(y,y^\prime)=\| y - y^\prime \|^2$. Then for $M \in \mathbb{N}$, we define $\mathcal{R} \colon (\RealSet^q)^M \times (\RealSet^q)^M \rightarrow \RealSet$ by
@@ -79,7 +151,9 @@ Let $j \in {1,\ldots,L}$. The exact gradient descent update of the biases in the
 u_j^b &:= \frac1{M} \sum_{i=1}^M u_{j,i}^b, \text{where} \\
 u_{j,i}^b &:= I_j(x_i)A_{j+1}^T I_{j+1}(x_i) A_{j+2}^T \cdots I_{L-1}(x_i)A_L^T \ell^\prime(y_i, R(\Phi_j)(x_i))
 \end{align}
-for $i\in {1,\ldots,M}$, where $I_j(x)\in{0,1}^{N_j}$ with $(I_j(x))_k = 1$ if and only if $R(\Phi_j)(x)\geqslant~0$
+for $i\in {1,\ldots,M}$, where $I_j(x)\in{0,1}^{N_j}$ with $(I_j(x))_k = 1$ if and only if $R(\Phi_j)(x)\geqslant0$
+
+
 
 
 \bibliographystyle{apalike}
