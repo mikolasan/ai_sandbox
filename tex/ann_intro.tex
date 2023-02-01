@@ -4,8 +4,10 @@
 \usepackage[T2A]{fontenc}
 \usepackage[utf8x]{inputenc}
 \usepackage[russian, english]{babel}
+\usepackage[colorlinks,urlcolor=blue]{hyperref}
 
 \def\RealSet{\mathbb{R}}
+\newtheorem{Qual}{Quality}
 
 \begin{document}
 
@@ -154,6 +156,116 @@ u_{j,i}^b &:= I_j(x_i)A_{j+1}^T I_{j+1}(x_i) A_{j+2}^T \cdots I_{L-1}(x_i)A_L^T 
 for $i\in {1,\ldots,M}$, where $I_j(x)\in{0,1}^{N_j}$ with $(I_j(x))_k = 1$ if and only if $R(\Phi_j)(x)\geqslant0$
 
 
+\section{The toy task}
+
+\paragraph{The goal}
+What I want to formulate is the system that can learn almost instantaneously, adapt to the changing world, and follow its core needs. Also create completely new, not in any way prior programmed goals, in which the system sees a better strategy. Let’s formulate environment conditions, agent goals, and preferable strategies that will be used in our new model. We will aim for a simple example and setup that will help better highlight the problem and test our methods.
+
+We start with a traditional setting. Usually it includes an agent in 2D space environment that can freely move around in the environment, search for a reward, and receive a feedback from the environment which can affect the agent in negative or positive manner. The environment can be a pretty simple grid or it can have obstacles, thus adding complexity to navigation rules, or the agent might be forced to look for the shortest route.
+
+\paragraph{ANN}
+Although somewhere in the first paragraphs researchers promise to create very smart, self-contained algorithms making substantive decisions, but in the end they start with very limiting environment. Our starting point will be an ANN as the simplest possible model.
+
+In fact, it crudely simplifies many of the biological aspects of the neuron. If we make a biological version of ANN model, and put it into fMRI scanner, and scan its activity during its work, then we will see that it activates precisely one layer at a time.
+
+\paragraph{Gradient descent}
+ANN is a classifier and an approximator. 
+For the learning it requires a training set with labeled outcomes. 
+ANN is trained with the technique called Gradient Descent (GD). There are other approaches, but essentially they all are trying to solve an optimization problem.
+GD needs to correct system parameters step by step, and in the end the system will produce output closer to the required one.
+This means that even though the agent can obtain new inputs from the environment at any moment, but ANN cannot label output values during training by its own. However after the training process has been performed, it can define labels by approximating the input, but its choice is limited by the data it was trained on.
+
+ANN goes through the training set over and over, updating weights and reducing value of the cost function (mean square function, for example). At some point the learning process stops and never resumes after. Hence, we introduce the quality 
+
+\begin{Qual}\label{q1}
+the system must start taking actions after the first “training input” is received
+\end{Qual}
+
+\paragraph{Unsupervised learning}
+The teacher requirement should be loosen. 
+
+It can be achieved by considering another algorithms that learn without a teacher. This class is called unsupervised learning. Very popular probabilistic methods like principal component analysis (PCA) and k-means clustering, they also try to mimic the training data, but do not answer to the main question: how to live with less cost on consumed energy and more reward
+
+In our framework we should find a way to punish probabilistic approaches. Surely it all boils down to activation threshold and impulse routes between neurons.
+Neuron is a small cell that transmits signals with respect to some external and internal conditions (chemistry saturation level, time sequence of spikes). But if such algorithm only discovers a distribution in training data, then what it can learn from a coin toss. Only that coin is fair or not. But nothing about what is a coin or speculate about how many times in a row it can land on head. Quite the opposite, algorithms can restore data out of very big noise, which is impressive, but does not lead us to the point.
+
+
+\paragraph{Reinforcment learning}
+In reinforcement learning we have an environment, states, actions, probabilities to take an action and advance from one state to another, reward function for such transition. The agent looks for policies: what actions to take when it finds itself in a specific state.
+
+But
+
+\begin{itemize}
+\item  not on every step you should receive a reward. maybe a long chain of struggle leads to something incredibly good. Can be solved by a notion of regret
+\item some policies can be “prewired” or form of bad habits - hard to change, but repeatable work can do it.
+\item also uncontrolled biological condition can affect policies temporarily (low battery for robot, depression - for humans). The agent should understand that the state is not permanent, policy shouldn’t be adjusted, but another alternative policies (and also temporal) can be developed
+\item maybe not important, but really artificial thing that really itches: if best policy is found, so the object will continue doing the same sequence of actions over and over without any alteration. It will not get bored doing only perfect actions.
+\item technical downside is learning by one “training step” at a time, because of the environment response
+\end{itemize}
+
+The only way to know the reaction from the environment is to take an action. Which satisfies our quality of “learning by doing“ \ref{q1}
+
+\paragraph{A sequence of actions}
+Training data has a defined set of possible outcomes. In terms of Reinforcement Learning (RL) we require the system to follow strategies and increase total reward value of the system over time.
+Learning process can be just a random walk or with the help of genetic algorithm, when output of the reward function must be maximized.
+Although the training data could have negatively labeled result, but ANN in its original structure cannot use negative outcomes. So we cannot define correct and incorrect labels for every input, which means that they all must lead to a positive result on every action. This leads us to several conclusions. 
+
+\begin{Qual}\label{q2}
+  predicting negative result should be taken into account
+\end{Qual}
+
+\paragraph{Memory}
+
+The system should have memory in order to store appropriate responses to input signals that lead to a reward increase (in terms of RL).
+
+\begin{Qual}\label{q3}
+  actions are important in sequence
+\end{Qual}
+
+A sequence of actions might be important to find the best strategy, thus RNN can be a good fit because they can save sequences in its memory. Output of the network can be connected to motor activation. This is how RNN is designed. Also it means that “the decision” is made somewhere in the hidden layers. 
+
+
+
+\paragraph{Conclusions}
+ANN alone doesn’t extract logic about inputs on how one is different from another. There is no hidden semantics, it doesn’t create relations or conclusions based on data. As a reminder ANN is limited to classification and approximation problems.
+
+
+
+\paragraph{Connections}
+What if by putting all responsibility on connections is wrong. Dendrites and axons only transmit the signal. And when the signal is emitted, nothing can stop it (only degenerative disease can). It can be “ignored” be the receiving neuron.
+
+But here is the difference: decision is made not by connections, but by neuron itself. And that decision is made not because of weights and the signal together not reaching the threshold, but instead in dynamics it changes its internal state based on a sequence of inputs. It sounds strange, but I think it only makes sense when we consider a group of neurons. Let’s assume that neuron is not functional, we always must consider the work in conjunction of several units. 
+
+\medskip\hrule\medskip
+
+It must be a subject of transfer learning to adjust known strategies to changing environment. Here I have seen few interesting approaches in the MDP framework. In short, in MDP we have actions, policies and states. Usually only policies are dynamic, but states and actions are pre-defined before experiments. Some researches make states dynamic and the agent can add more states and remove bad ones. For some reason it’s not fully dynamical. One system did require the first state to be defined. Another more or less works on state subsets (states are defined but not all of them available).
+
+
+What about actions? That component should be considered dynamic too.
+
+Can MDP be defined purely in ANN terms (I don’t mean gradient descent or back propagation)? Why? Then it can be compared with RNN not performance vise, but structure vice. Same as the opposite is applicable: sequential memory can be added to MDP.
+
+
+ANN should have notion of time. RNN can do it
+
+\url{https://stanford.edu/~shervine/teaching/cs-230/cheatsheet-recurrent-neural-networks}
+
+How to encode time in ANN. With the help of another ANN that will nonlinearly transform idle delay time into encoded input. Almost like one-hot encoding, but they call it soft.
+
+\url{https://towardsdatascience.com/how-to-encode-time-property-in-recurrent-neutral-networks-friday-experiment-c14c39ba9755}
+
+\url{https://github.com/crazyleg/time-dependant-rnn-embeddings-keras}
+
+\url{https://arxiv.org/pdf/1708.00065.pdf}
+
+\url{https://github.com/brendenlake/omniglot} - omniglot dataset
+
+How to represent time in hidden neurons. Let’s assume that we have neurons “second”, “minute”, “hour”, “day”. How to start counting in ANN? How to write a calculator with ANN?
+
+All new qualities
+
+- **must start taking actions after the first “training input” is received**
+- **should have memory in order to store appropriate responses to input signals that lead to a reward increase**
 
 
 \bibliographystyle{apalike}
