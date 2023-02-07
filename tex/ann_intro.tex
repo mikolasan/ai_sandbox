@@ -8,6 +8,7 @@
 
 \def\RealSet{\mathbb{R}}
 \newtheorem{Qual}{Quality}
+\DeclareMathOperator{\vect}{vec}
 
 \begin{document}
 
@@ -39,15 +40,15 @@ f \colon \RealSet^{n_0} \xrightarrow{\Phi_{W^1}^1} \RealSet^{n_1}
 \xrightarrow{\Sigma^k} \RealSet^{n_k}
 \end{multline}
 where for $l=1,\ldots,k$
-\[
+\begin{equation}\label{Phi}
 \Phi_{W^l}^l \colon \RealSet^{n_{l-1}} \rightarrow \RealSet^{n_l}, 
 a^{l-1}\mapsto \Phi_{W^l}^l(a^{l-1}) :=W^l \cdot \begin{pmatrix} a^{l-1} \\ 1 \end{pmatrix} =: z^l
-\]
+\end{equation}
 are potential functions and
-\[
+\begin{equation}\label{Sigma}
 \Sigma^l \colon \RealSet^{n_{l}} \rightarrow \RealSet^{n},
 z^l \rightarrow \Sigma^l(z^l) =: a^l
-\]
+\end{equation}
 are component-wise activation functions. For $x\in \RealSet^{n_0}$, a $k$-layered neural network takes on the value
 \[
 f(x) := \Sigma^k( \Phi_{W^k}^k( \Sigma^{k-1}( \Phi_{W^{k-1}}^{k-1}(\cdots \Sigma^1( \Phi_{W^1}^1(x) ) \cdots) ) ) ) \in \RealSet^{n_k}
@@ -58,7 +59,7 @@ Then the weight matrix-variate neural network function $f_x$ of $f$ is deifned a
 f_x \colon \RealSet^{n_1 \times (n_0 + 1)} \times \cdots \times \RealSet^{n_k \times (n_{k-1} + 1)} \rightarrow \RealSet^{n_k}
 \]
 
-\begin{multline}
+\begin{multline}\label{f_x}
 (W^1,\dots,W^k)\mapsto f_x(W^1,\dots,W^k) := \\
 \Sigma^k( \Phi^k( W^k, \underbrace{\Sigma^{k-1}( \Phi^{k-1}( W^{k-1}, \cdots (W^2, \overbrace{\Sigma^1( \Phi^1(W^1, x))}^{a^1}) \cdots) ) }_{a^{k-1}} ))
 \end{multline}
@@ -77,10 +78,10 @@ where $N_0 := d$ and $N_1, \ldots , N_L \in \mathbb{N}$, and where $A_j \in \Rea
 
 \paragraph{Functional notation}
 The last column of $W^l$ encodes the biases of the neurons in layer $l$. The activation of neuron $i$ in layer $l$ for $i = 1,\dots,n_l$ and $l = 1,\dots,k$ is given by
-\[
-a^l_i = \sigma \left( \sum_{j=1}^{n_{l-1}} w_{ij}^l a_j^{l-1} + w_{i,n_{l-1}+1} \right) \in \RealSet^{n_l}
-\]
-
+\begin{equation}\label{forward_f}
+a^l_i = \sigma \left( \sum_{j=1}^{n_{l-1}} w_{ij}^l a_j^{l-1} + w_{i,n_{l-1}+1}^l \right) \in \RealSet^{n_l}
+\end{equation}
+More often you see that the bias element $w^l_{i,n_{l-1}+1}$ is denoted as $b_i^l$.
 
 \paragraph{Matrix notation}
 For a NN $\Phi$ and a domain $\Omega\subset\RealSet^d$, we define the associated realisation of the NN $\Phi$ as
@@ -113,29 +114,157 @@ a^l &= f(z^l)
 \subsection{Gradient descent}
 
 \paragraph{Functional notation}
-A multi-matrix-variate real-valued function of the form
+When we have a $k$-layered neural network with $n_l \times n_{l-1}+1$ dimensional weight matrices $W^l$, $l=1,\dots,k$ for simplicity sake we introduce a neural network's weight vector $\mathcal{W}$ by vectorizing every weight matrix
+\[
+\mathcal{W} := \Bigl(\vect(W^l)\Bigr)_{1\leqslant l\leqslant k} \in \RealSet^p, \text{where $p=\sum_{l=1}^0{n_k}n_l(n_{l-1}+1)$}
+\]
+
+\begin{align}
+W^l &= \begin{pmatrix}
+w^l_{1,1} & \dots & w^l_{1,n_{l-1}+1} \\
+\vdots & \ddots & \vdots \\
+w^l_{n_{l},1} & \dots & w^l_{n_{l},n_{l-1}+1}
+\end{pmatrix} \\
+\vect(W^l) &= \Bigl( w^l_{1,1} w^l_{2,1} \dots w^l_{n_{l},1} w^l_{1,2} \dots w^l_{1,n_{l-1}+1} \dots w^l_{n_{l},n_{l-1}+1}\Bigr)^T \\
+% \mathcal{W} &= \begin{pmatrix}
+% w^1_{1,1} & \dots & w^k_{1,1} \\
+% \vdots & \vdots & \vdots \\
+% w^1_{n_1,n_0+1} & \dots & w^k_{n_k,n_{k-1}+1}
+% \end{pmatrix}
+\mathcal{W} &= \Bigl( w^1_{1,1} \dots w^1_{n_1,n_0+1} \dots  w^k_{1,1} \dots w^k_{n_k,n_{k-1}+1} \Bigr)^T
+\end{align}
+
+
+A multi-matrix-variate real-valued function $c_{xy}$ is a training exemplar-specific cost function if
 \[
 c_{xy} \colon \RealSet^{n_1 \times (n_0 + 1)} \times \cdots \times \RealSet^{n_k \times (n_{k-1} + 1)} \rightarrow \RealSet,
 \]
-\[
+\begin{equation}\label{output_specific_cost_function}
 (W^1,\dots,W^k) \mapsto c_{xy}(W^1,\dots,W^k) := c_y(f_x(W^1,\dots,W^k))
+\end{equation}
+\[
+c_y \colon \RealSet^{n_k} \rightarrow \RealSet, a^k \mapsto c_y(a^k)
+\]
+$f_x$ is defined by \eqref{f_x}, $a^k$ is an activation vector of layer $k$, calculated in a sequence starting from $a^0 := x$ and continued by \eqref{forward_f}, $c_y$ is called an output-specific cost function.
+Commonly employed output-specific cost functions: quadratic cost
+\[
+c_y(a^k) := \frac{1}{2}\sum_{j=1}^{n_k}(a_j^k - y_j)^2
+\]
+cross entropy cost
+\[
+  c_y(a^k) := - \sum_{j=1}^{n_k}y_j \ln a_j^k + (1-y_j)\ln(1-a_j^k)
 \]
 
-Select $\mathcal{W}^{(0)}$ and $\alpha > 0$ appropriately. For $j = 1,2,\dots,$(until convergence), set
+I should point out that that lower indices in $c_{xy}$ and $c_y$ just define a fixed argument for a function, so in another words
 \[
-\mathcal{W}^{(j)} := \mathcal{W}^{(j-1)} - \frac{\alpha}{n} \sum_{i=1}^n \nabla c_{x^{(i)}y^{(i)}}(W^1,\dots,W^k),
+c_{xy} = c(y, x) = c(y, x, W^1,\dots,W^k) = c(y, f(x, W^1,\dots,W^k))
 \]
-where,
 \[
-\nabla c_{x^{(i)}y^{(i)}}(W^1,\dots,W^k) = \Bigl(\nabla_{W^l} c_{x^{(i)}y^{(i)}}(W^1,\dots,W^k) \Bigr)_{1\leqslant l \leqslant k}
-\]
-denotes the gradient of the $i$-th training exemplar-specific cost function for $i = 1,\dots,n$
-
-Each of these gradients for all $i = 1,\dots,n_l$, $j = 1,\dots,n_{l-1} + 1$, and $l = 1,\dots,k$ comprises the partial derivatives
-\[
-\nabla_{W^l} c_{xy}(W^1,\dots,W^k) = \Biggl( \frac{\partial}{\partial w_{ij}^l} c_{xy}(W^1,\dots,W^k) \Biggr)_{ij}
+c_y = c(y) = c(y, f(x^{(i)}, W^1,\dots,W^k))
 \]
 
+If $\mathcal{D}$ is a neural network training set, a set of vector pairs
+\[
+\mathcal{D} := \bigl\{ (x^{(i)}, y^{(i)}) \bigr\}_{i=1}^n
+\]
+
+comprising $n$ training exemplars, where $x^{(i)} \in \RealSet^{n_0}$ and $y^{(i)} \in \RealSet^{n_k}$, then $\hat c_{\mathcal{D}}$ denotes an additive neural network cost function
+\[
+\hat c_{\mathcal{D}} \colon \RealSet^p \rightarrow \RealSet, \mathcal{W}\mapsto \hat c_{\mathcal{D}}(\mathcal{W}) := \frac{1}{n} \sum_{i=1}^{n}c_{x^{(i)}y^{(i)}}(W^1,\dots,W^k)
+\]
+
+Select $\mathcal{W}^{(0)}$ and $\alpha > 0$ appropriately. For $t = 1,2,\dots,$ until convergence, $c_{\mathcal{D}} < \varepsilon$, set
+\[
+\mathcal{W}^{(t)} := \mathcal{W}^{(t-1)} - \frac{\alpha}{n} \sum_{i=1}^n \nabla c_{x^{(i)}y^{(i)}}(W^1,\dots,W^k),
+\]
+where $\nabla c_{x^{(i)}y^{(i)}}$ denotes the gradient of the $i$-th training exemplar-specific cost function for $i = 1,\dots,n$
+
+\begin{gather}
+\nabla c_{x^{(i)}y^{(i)}}(W^1,\dots,W^k) = \Bigl(\nabla_{W^l} c_{x^{(i)}y^{(i)}}(W^1,\dots,W^k) \Bigr)_{1\leqslant l \leqslant k} \\
+\nabla_{W^l} c_{xy}(W^1,\dots,W^k) = \Biggl( \frac{\partial}{\partial w_{ij}^l} c_{xy}(W^1,\dots,W^k) \Biggr)_{ij} \\
+i = 1,\dots,n_l \\
+j = 1,\dots,n_{l-1} + 1 \\
+l = 1,\dots,k
+\end{gather}
+
+Assume that we take one training examplar, a tuple $(x^{(i)}, y^{(i)})$ that we denote as $(x,y)$ for simplicity. The training process is consists of minimizing the cost function $c_{xy}$  from \eqref{output_specific_cost_function} by changing values of $W^1,\dots,W^k$. The input value $x$ goes through the network in the forward pass: $a^0 = x, a^1 = \sigma(W^1 a^0 + b^1), \dots, a^1 = \sigma(W^k a^{k-1} + b^k)$.
+
+A difference that should be applied to weight matrices $W^1, \dots, W^k$ we find out by calculating a gradient for $c_{xy}$.
+\[
+\nabla c_{xy} = \nabla c_{xy}(W^1,\dots,W^k)
+\]
+\[
+\nabla c_{xy} = \Bigl[\frac{\partial c}{\partial W^1}, \dots, \frac{\partial c}{\partial W^k}\Bigr]
+\]
+
+We are interested in partial derivatives $\frac{\partial c}{\partial W^l}$. Here we need to use the chain rule, because we need to differentiate by $W^l$, but $c_{xy}$ is a composition of $f_x$ and $\Sigma$ and $\Phi$.
+
+\[
+\frac{\partial c}{\partial W^l} = \frac{\partial c}{\partial a^l} \cdot \frac{\partial a^l}{\partial W^l}
+\]
+
+The second part will require the cain rule because we use a superposition of functions $\Sigma$ and $\Phi$
+\[
+\frac{\partial a^l}{\partial W^l} = \frac{\partial \Sigma^l}{\partial W^l} = \frac{\partial \Sigma^l}{\partial z^l} \cdot \frac{\partial z^l}{\partial W^l} = \frac{\partial \Sigma^l}{\partial z^l} \cdot \frac{\partial \Phi^l}{\partial W^l} = \hat\Sigma^l(z^l) \cdot a^{l-1}
+\]
+
+Symmetrically we get
+\[
+\frac{\partial a^l}{\partial a^{l-1}} = \hat\Sigma^l(z^l) \cdot W^l
+\]
+
+If $\Sigma(x)=\frac{1}{1+e^{-x}}$ then
+\[
+\frac{d\Sigma}{dx} = - \frac{-e^{-x}}{(1+e^{-x})^2} = \frac{(1 - 1) + e^{-x}}{(1+e^{-x})^2} = 
+\]
+
+\[
+= \frac{(1+e^{-x}) - 1}{(1+e^{-x})} \frac{1}{(1+e^{-x})} = \left(1 - \frac{1}{1+e^{-x}}\right) \left(\frac{1}{1+e^{-x}}\right)
+\]
+
+\[
+\left. \frac{d\Sigma}{dx}\right|_{x=z^l} = \Sigma(z^l)(1 - \Sigma(z^l)) = a^l(1 - a^l)
+\]
+
+In the beginning we know only $\frac{\partial c}{\partial a^l}$ when $l=k$ ($c_{xy}$ - quadratic cost)
+\[
+\frac{\partial c}{\partial a^k} = (a^k - y) =: \delta^k
+\]
+
+For the following layers we calculate it step by step back
+\[
+\delta^{l-1} = \frac{\partial c}{\partial a^{l-1}} = \frac{\partial c}{\partial a^l} \frac{\partial a^l}{\partial a^{l-1}} = \delta^l \hat\Sigma(z^l)W^l = \delta^l a^l(1-a^l)W^l
+\]
+
+\[
+\delta_i^{l-1} = \frac{\partial c}{\partial a_i^{l-1}} = \nabla c \cdot \frac{\partial \mathbf{a}}{\partial a_i^{l-1}} = \sum_{j=1}^{n_l} \frac{\partial c}{\partial a_j^l} \frac{\partial a_j^l}{\partial a_i^{l-1}} = \sum_{j=1}^{n_l} \delta_j^l a_i^l(1-a_i^l)w_{ij}^l
+\]
+
+As a result we can write how we update matrix values
+
+\[
+\frac{\partial c}{\partial W^k} = \frac{\partial c}{\partial a^k} \cdot \frac{\partial a^k}{\partial W^k} = (a^k - y) \cdot a^k(1 - a^k) a^{k-1}
+\]
+
+\[
+\frac{\partial c}{\partial W^{l}} = \frac{\partial c}{\partial a^{l}} \cdot \frac{\partial a^{l}}{\partial W^{l}} = \delta^{l} \cdot a^l(1 - a^l) a^{l-1}
+\]
+
+\[
+ = \delta^{l+1} a^{l+1}(1-a^{l+1})W^{l+1} \cdot a^l(1 - a^l) a^{l-1}
+\]
+
+\begin{align}
+a^0 &= x \\
+z^1 &= \Phi(W^1, a^0) \\
+a^1 &= \Sigma(z^1) \\
+z^2 &= \Phi(W^2, a^1) \\
+a^2 &= \Sigma(z^2) \\
+\delta^2 &= a^2 - y \\
+\frac{\partial c}{\partial W^2} &= \delta^2 (a^2 (1-a^2) ) a^1 \\
+\delta^1 &= \delta^2 (a^2 (1-a^2 )) W^2 \\
+\frac{\partial c}{\partial W^1} &= \delta^1 (a^1 (1-a^1) ) a^0
+\end{align}
 
 \paragraph{Matrix notation}
 Again repeat definitions from \cite{Karner:2022}.
@@ -153,7 +282,11 @@ Let $j \in {1,\ldots,L}$. The exact gradient descent update of the biases in the
 u_j^b &:= \frac1{M} \sum_{i=1}^M u_{j,i}^b, \text{where} \\
 u_{j,i}^b &:= I_j(x_i)A_{j+1}^T I_{j+1}(x_i) A_{j+2}^T \cdots I_{L-1}(x_i)A_L^T \ell^\prime(y_i, R(\Phi_j)(x_i))
 \end{align}
-for $i\in {1,\ldots,M}$, where $I_j(x)\in{0,1}^{N_j}$ with $(I_j(x))_k = 1$ if and only if $R(\Phi_j)(x)\geqslant0$
+for $i\in {1,\ldots,M}$, where $I_j(x)\in{0,1}^{N_j}$ with $(I_j(x))_k = 1$ if and only if $R(\Phi_j)(x)\geqslant 0$.
+The exact gradient descent update of the weights in the $j$-th layer is defined as
+\[
+U_j^w := \frac{1}{M} \sum_{i=1}^{M} u_{j,i}^b \cdot \varrho(R(\Phi_{j-1})(x_i))^T
+\]
 
 
 \section{The toy task}
