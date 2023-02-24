@@ -4,6 +4,10 @@ from world import World
 
 
 def main():
+  """
+  https://medium.com/@ngao7/markov-decision-process-basics-3da5144d3348
+  https://medium.com/@ngao7/markov-decision-process-value-iteration-2d161d50a6ff
+  """
   agent = Agent()
   world = World()
   
