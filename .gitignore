@@ -1,8 +1,8 @@
-/__pycache__
+# Python
+__pycache__
 *.pyc
 
 # TeX
-
 *.aux
 *.bbl
 *.blg
