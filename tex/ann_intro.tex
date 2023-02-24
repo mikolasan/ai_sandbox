@@ -1,4 +1,4 @@
-\documentclass[draft]{article}
+\documentclass{article}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage[T2A]{fontenc}
@@ -10,7 +10,17 @@
 \newtheorem{Qual}{Quality}
 \DeclareMathOperator{\vect}{vec}
 
+\title{ANN Bible}
+\author{Nikolay Neupokoev}
+\date{\today}
+
 \begin{document}
+\maketitle
+\begin{abstract}
+We are gathering different aspects in notations used to define Artificial Neural Networks. We are going in very detail on every formula sometimes skipped in publications.
+\end{abstract}
+
+\tableofcontents
 
 \section{Backpropagation explained}
 
@@ -111,7 +121,8 @@ a^l &= f(z^l)
 \end{align}
 
 
-\subsection{Gradient descent}
+\subsection{Back Propagation}
+% \subsection{Gradient descent}
 
 \paragraph{Functional notation}
 When we have a $k$-layered neural network with $n_l \times n_{l-1}+1$ dimensional weight matrices $W^l$, $l=1,\dots,k$ for simplicity sake we introduce a neural network's weight vector $\mathcal{W}$ by vectorizing every weight matrix
@@ -169,9 +180,9 @@ If $\mathcal{D}$ is a neural network training set, a set of vector pairs
 \]
 
 comprising $n$ training exemplars, where $x^{(i)} \in \RealSet^{n_0}$ and $y^{(i)} \in \RealSet^{n_k}$, then $\hat c_{\mathcal{D}}$ denotes an additive neural network cost function
-\[
+\begin{equation}\label{additive_cost_function}
 \hat c_{\mathcal{D}} \colon \RealSet^p \rightarrow \RealSet, \mathcal{W}\mapsto \hat c_{\mathcal{D}}(\mathcal{W}) := \frac{1}{n} \sum_{i=1}^{n}c_{x^{(i)}y^{(i)}}(W^1,\dots,W^k)
-\]
+\end{equation}
 
 Select $\mathcal{W}^{(0)}$ and $\alpha > 0$ appropriately. For $t = 1,2,\dots,$ until convergence, $c_{\mathcal{D}} < \varepsilon$, set
 \[
@@ -269,12 +280,12 @@ a^2 &= \Sigma(z^2) \\
 \paragraph{Matrix notation}
 Again repeat definitions from \cite{Karner:2022}.
 
-Loss function $\ell \colon \RealSet^q \times  \RealSet^q \rightarrow  \RealSet^{+}$, for $q \in \mathbb{N}$, which could be the square loss $\ell(y,y^\prime)=\| y - y^\prime \|^2$. Then for $M \in \mathbb{N}$, we define $\mathcal{R} \colon (\RealSet^q)^M \times (\RealSet^q)^M \rightarrow \RealSet$ by
+Loss function $\ell \colon \RealSet^q \times  \RealSet^q \rightarrow  \RealSet^{+}$, for $q \in \mathbb{N}$, which could be the square loss $\ell(y,y^\prime)=\| y - y^\prime \|^2$. Then for $M \in \mathbb{N}$, we define additive neural network cost function (the same as \eqref{additive_cost_function}) $\mathcal{R} \colon (\RealSet^q)^M \times (\RealSet^q)^M \rightarrow \RealSet$ by
 \[
-\hat{\mathcal{R}} (Y,\hat Y) = \frac1{M} \sum_{i=1}^M \ell(Y_i, \hat Y_i)
+{\mathcal{R}} (Y,\hat Y) = \frac1{M} \sum_{i=1}^M \ell(Y_i, \hat Y_i)
 \]
 
-for all $Y=(Y_i)_{i=1}^M \subset \RealSet^q$, $\hat Y = (\hat Y_i)_{i=1}^M \subset \RealSet^q$
+for all $Y=(Y_i)_{i=1}^M \subset \RealSet^q$, $\hat Y = (\hat Y_i)_{i=1}^M \subset \RealSet^q$. We need to minimize the resulting value of ${\mathcal{R}}$
 
 Let $j \in {1,\ldots,L}$. The exact gradient descent update of the biases in the $j$-th layer is given by $u_j^b$, which is defined as
 
@@ -282,11 +293,41 @@ Let $j \in {1,\ldots,L}$. The exact gradient descent update of the biases in the
 u_j^b &:= \frac1{M} \sum_{i=1}^M u_{j,i}^b, \text{where} \\
 u_{j,i}^b &:= I_j(x_i)A_{j+1}^T I_{j+1}(x_i) A_{j+2}^T \cdots I_{L-1}(x_i)A_L^T \ell^\prime(y_i, R(\Phi_j)(x_i))
 \end{align}
+
 for $i\in {1,\ldots,M}$, where $I_j(x)\in{0,1}^{N_j}$ with $(I_j(x))_k = 1$ if and only if $R(\Phi_j)(x)\geqslant 0$.
 The exact gradient descent update of the weights in the $j$-th layer is defined as
 \[
 U_j^w := \frac{1}{M} \sum_{i=1}^{M} u_{j,i}^b \cdot \varrho(R(\Phi_{j-1})(x_i))^T
 \]
+
+Updated weight and bias matrices defined as
+\begin{align}
+\mathbf{A}_j := A_j - \lambda U_j^w, &\qquad \mathbf{b_j} := b_j - \lambda u_j^b
+\end{align}
+
+
+\subsection{Reversed Back Propagation}
+
+\paragraph{Functional notation}
+
+actual and desired output $y$ and $\hat y$, $u_i^l$ input to $i$-th neuron on layer $l$, $v_i^l = \sigma(u_i^l)$
+
+\begin{align}
+\Delta x &= \Delta v^0 = \frac{\partial \ell(y,\hat y)}{\partial v^0} = \left(\delta_1^0,\dots,\delta_m^0 \right) \\
+\delta_i^0 &= - \frac{\partial \ell(y, \hat y)}{\partial v_i^0} \\
+\delta_i^l &= - \frac{\partial \ell(y, \hat y)}{\partial u_i^l}, l>0
+\end{align}
+
+\begin{equation}\label{l_x}
+\ell_x(\Delta x) = \frac{1}{2} \sum_{i=1}^{m}(\delta_i^0)^2
+\end{equation}
+$\ell_x$ formulates how much of the error of input neuron is for a single case, it's expected to be as close to zero as possible
+
+Differentiate equeation \eqref{l_x}
+\begin{equation}
+\nabla x_i = -\frac{\partial \ell_x(\Delta x)}{\partial \Delta x_i} = - \delta_i^0
+\end{equation}
+
 
 
 \section{The toy task}
