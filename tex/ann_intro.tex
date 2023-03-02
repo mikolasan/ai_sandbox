@@ -1,4 +1,4 @@
-\documentclass{article}
+\documentclass[draft]{article}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage[T2A]{fontenc}
@@ -50,10 +50,16 @@ f \colon \RealSet^{n_0} \xrightarrow{\Phi_{W^1}^1} \RealSet^{n_1}
 \xrightarrow{\Sigma^k} \RealSet^{n_k}
 \end{multline}
 where for $l=1,\ldots,k$
-\begin{equation}\label{Phi}
+\begin{gather}\label{Phi}
 \Phi_{W^l}^l \colon \RealSet^{n_{l-1}} \rightarrow \RealSet^{n_l}, 
-a^{l-1}\mapsto \Phi_{W^l}^l(a^{l-1}) :=W^l \cdot \begin{pmatrix} a^{l-1} \\ 1 \end{pmatrix} =: z^l
-\end{equation}
+a^{l-1}\mapsto \Phi_{W^l}^l(a^{l-1}) :=W^l \cdot \begin{pmatrix} a^{l-1} \\ 1 \end{pmatrix} =: z^l \\
+W^l = \begin{pmatrix}
+w^l_{1,1} & \dots & w^l_{1,n_{l-1}} & w^l_{1,n_{l-1}+1} \\
+\vdots & \ddots & \vdots & \vdots \\
+w^l_{n_{l},1} & \dots & w^l_{n_{l},n_{l-1}} & w^l_{n_{l},n_{l-1}+1}
+\end{pmatrix} \\
+z^l_i = \sum_{j=1}^{n_{l-1}} w^l_{i, j} a^{l-1}_j + w^l_{i, n_{l-1}+1}
+\end{gather}
 are potential functions and
 \begin{equation}\label{Sigma}
 \Sigma^l \colon \RealSet^{n_{l}} \rightarrow \RealSet^{n},
@@ -81,7 +87,22 @@ a sequence of matrix-vector tuples
 \Phi := ((A_1, b_1), (A_2, b_2), \ldots , (A_L, b_L)),
 \]
 
-where $N_0 := d$ and $N_1, \ldots , N_L \in \mathbb{N}$, and where $A_j \in \RealSet^{N_{j}\times N_{j-1}}$ and $b_j \in \RealSet^{N_j}$ for $j = 1, \ldots, L$. The number $N_L$ is referred to as the output dimension.
+where $N_0 := d$ and $N_1, \ldots , N_L \in \mathbb{N}$, and where $A_j \in \RealSet^{N_{j}\times N_{j-1}}$ and $b_j \in \RealSet^{N_j}$ for $j = 1, \ldots, L$.
+
+\begin{gather}
+A_j = \begin{pmatrix}
+  a^j_{1,1} & \dots & a^j_{1,N_{j-1}} \\
+  \vdots & \ddots & \vdots \\
+  a^j_{N_{j},1} & \dots & a^j_{N_{j},N_{j-1}}
+  \end{pmatrix} \\
+b_j = \begin{pmatrix}
+  b^j_{1} \\
+  \vdots \\
+  b^j_{N_j}
+\end{pmatrix}
+\end{gather}
+  
+The number $N_L$ is referred to as the output dimension.
 
 
 \subsection{Forward pass}
@@ -93,6 +114,59 @@ a^l_i = \sigma \left( \sum_{j=1}^{n_{l-1}} w_{ij}^l a_j^{l-1} + w_{i,n_{l-1}+1}^
 \end{equation}
 More often you see that the bias element $w^l_{i,n_{l-1}+1}$ is denoted as $b_i^l$.
 
+When we have a $k$-layered neural network with $n_l \times n_{l-1}+1$ dimensional weight matrices $W^l$, $l=1,\dots,k$ for simplicity sake we introduce a neural network's weight vector $\mathcal{W}$ by vectorizing every weight matrix
+\[
+\mathcal{W} := \Bigl(\vect(W^l)\Bigr)_{1\leqslant l\leqslant k} \in \RealSet^p, \text{where $p=\sum_{l=1}^{n_k} n_l(n_{l-1}+1)$}
+\]
+
+\begin{align}
+W^l &= \begin{pmatrix}
+w^l_{1,1} & \dots & w^l_{1,n_{l-1}+1} \\
+\vdots & \ddots & \vdots \\
+w^l_{n_{l},1} & \dots & w^l_{n_{l},n_{l-1}+1}
+\end{pmatrix} \\
+\vect(W^l) &= \Bigl( w^l_{1,1} w^l_{2,1} \dots w^l_{n_{l},1} w^l_{1,2} \dots w^l_{1,n_{l-1}+1} \dots w^l_{n_{l},n_{l-1}+1}\Bigr)^T \\
+% \mathcal{W} &= \begin{pmatrix}
+% w^1_{1,1} & \dots & w^k_{1,1} \\
+% \vdots & \vdots & \vdots \\
+% w^1_{n_1,n_0+1} & \dots & w^k_{n_k,n_{k-1}+1}
+% \end{pmatrix}
+\mathcal{W} &= \Bigl( w^1_{1,1} \dots w^1_{n_1,n_0+1} \dots  w^k_{1,1} \dots w^k_{n_k,n_{k-1}+1} \Bigr)^T
+\end{align}
+
+On a layer 0 $a^0 = x$ where $x \in \mathcal{D}$
+\begin{gather}
+\Sigma^1 \Biggl( W^1 \cdot \begin{pmatrix} x^{(1)} \\ 1 \end{pmatrix} \Biggr); 
+\bigl(a^1_i\bigr)^{(1)} = \sigma \left( \sum_{j=1}^{n_{0}} w_{ij}^l x_j^{(1)} + w_{i,n_{0}+1}^l \right) \\
+\dots \notag \\
+\Sigma^1 \Biggl( W^1 \cdot \begin{pmatrix} x^{(n)} \\ 1 \end{pmatrix} \Biggr);
+\bigl(a^1_i\bigr)^{(n)} = \sigma \left( \sum_{j=1}^{n_{0}} w_{ij}^l x_j^{(n)} + w_{i,n_{0}+1}^l \right)
+\end{gather}
+And we can calculate forward pass for every traininig element, 
+but instead it's possible to optimize it by vectorizing this process.
+We combine all $x^{(i)}$ in a matrix.
+This way all elements of the resulting matrix $Z^1$ can be calculated in parallel.
+\begin{gather}
+W^1 \cdot X = 
+\begin{pmatrix}
+w^1_{1,1} & \dots & w^1_{1,n_{0}+1} \\
+\vdots & \ddots & \vdots \\
+w^1_{n_{1},1} & \dots & w^1_{n_{1},n_{0}+1}
+\end{pmatrix}
+\begin{pmatrix}
+\vdots & & \vdots \\
+x^{(1)}_i & \vdots & x^{(n)}_i \\
+\vdots & & \vdots \\
+1 & & 1
+\end{pmatrix} \\
+W^1 \cdot X = Z^1 = \begin{pmatrix}
+z^1_{1,1} & \dots & z^1_{1,n} \\
+\vdots & \ddots & \vdots \\
+z^1_{n_{1},1} & \dots & z^1_{n_{1},n}
+\end{pmatrix} \\
+z^1_{i,j} = \sum_{k=1}^{n_{0}} w_{ik}^1 x_k^{(j)} + w_{i,n_{0}+1}^1
+\end{gather}
+
 \paragraph{Matrix notation}
 For a NN $\Phi$ and a domain $\Omega\subset\RealSet^d$, we define the associated realisation of the NN $\Phi$ as
 \[
@@ -102,6 +176,7 @@ The output $x^{(L)}\in \RealSet^{N_L}$ results from
 \begin{align}
 x^{(0)} &:= x,\\
 x^{(j)} &:= \varrho(A_j x^{(j-1)} + b_j) \text{ for $j=1,\dots,L-1$}, \label{karner-forward-j}\\
+x^{(j)}_i &= \varrho(\sum_{k=1}^{N_{j-1}} a^j_{ik}x^{(j-1)}_k + b^j_i) \\
 x^{(L)} &:= A_L x^{(L-1)} + b_L.
 \end{align}
 Here $\varrho(x) := \max \{0,x\}$, for $x\in\RealSet$ is understood to act component-wise on vector-valued inputs, i.e., for $y=(y^1,\dots,y^m)\in\RealSet^m$, $\varrho(y) := (\varrho(y^1),\dots,\varrho(y^m))$
@@ -125,27 +200,6 @@ a^l &= f(z^l)
 % \subsection{Gradient descent}
 
 \paragraph{Functional notation}
-When we have a $k$-layered neural network with $n_l \times n_{l-1}+1$ dimensional weight matrices $W^l$, $l=1,\dots,k$ for simplicity sake we introduce a neural network's weight vector $\mathcal{W}$ by vectorizing every weight matrix
-\[
-\mathcal{W} := \Bigl(\vect(W^l)\Bigr)_{1\leqslant l\leqslant k} \in \RealSet^p, \text{where $p=\sum_{l=1}^0{n_k}n_l(n_{l-1}+1)$}
-\]
-
-\begin{align}
-W^l &= \begin{pmatrix}
-w^l_{1,1} & \dots & w^l_{1,n_{l-1}+1} \\
-\vdots & \ddots & \vdots \\
-w^l_{n_{l},1} & \dots & w^l_{n_{l},n_{l-1}+1}
-\end{pmatrix} \\
-\vect(W^l) &= \Bigl( w^l_{1,1} w^l_{2,1} \dots w^l_{n_{l},1} w^l_{1,2} \dots w^l_{1,n_{l-1}+1} \dots w^l_{n_{l},n_{l-1}+1}\Bigr)^T \\
-% \mathcal{W} &= \begin{pmatrix}
-% w^1_{1,1} & \dots & w^k_{1,1} \\
-% \vdots & \vdots & \vdots \\
-% w^1_{n_1,n_0+1} & \dots & w^k_{n_k,n_{k-1}+1}
-% \end{pmatrix}
-\mathcal{W} &= \Bigl( w^1_{1,1} \dots w^1_{n_1,n_0+1} \dots  w^k_{1,1} \dots w^k_{n_k,n_{k-1}+1} \Bigr)^T
-\end{align}
-
-
 A multi-matrix-variate real-valued function $c_{xy}$ is a training exemplar-specific cost function if
 \[
 c_{xy} \colon \RealSet^{n_1 \times (n_0 + 1)} \times \cdots \times \RealSet^{n_k \times (n_{k-1} + 1)} \rightarrow \RealSet,
@@ -201,6 +255,7 @@ l = 1,\dots,k
 Assume that we take one training examplar, a tuple $(x^{(i)}, y^{(i)})$ that we denote as $(x,y)$ for simplicity. The training process is consists of minimizing the cost function $c_{xy}$  from \eqref{output_specific_cost_function} by changing values of $W^1,\dots,W^k$. The input value $x$ goes through the network in the forward pass: $a^0 = x, a^1 = \sigma(W^1 a^0 + b^1), \dots, a^1 = \sigma(W^k a^{k-1} + b^k)$.
 
 A difference that should be applied to weight matrices $W^1, \dots, W^k$ we find out by calculating a gradient for $c_{xy}$.
+It shows what dynamics the cost function $c_{xy}$ has on selected values from $\mathcal{D}$
 \[
 \nabla c_{xy} = \nabla c_{xy}(W^1,\dots,W^k)
 \]
@@ -211,38 +266,76 @@ A difference that should be applied to weight matrices $W^1, \dots, W^k$ we find
 We are interested in partial derivatives $\frac{\partial c}{\partial W^l}$. Here we need to use the chain rule, because we need to differentiate by $W^l$, but $c_{xy}$ is a composition of $f_x$ and $\Sigma$ and $\Phi$.
 
 \[
-\frac{\partial c}{\partial W^l} = \frac{\partial c}{\partial a^l} \cdot \frac{\partial a^l}{\partial W^l}
+\frac{\partial c}{\partial W^l} = 
+\frac{\partial c}{\partial a^l} \cdot \frac{\partial a^l}{\partial W^l}
 \]
 
-The second part will require the cain rule because we use a superposition of functions $\Sigma$ and $\Phi$
+The second part will require the chain rule because we use a superposition of functions $\Sigma$ and $\Phi$
 \[
-\frac{\partial a^l}{\partial W^l} = \frac{\partial \Sigma^l}{\partial W^l} = \frac{\partial \Sigma^l}{\partial z^l} \cdot \frac{\partial z^l}{\partial W^l} = \frac{\partial \Sigma^l}{\partial z^l} \cdot \frac{\partial \Phi^l}{\partial W^l} = \hat\Sigma^l(z^l) \cdot a^{l-1}
+\frac{\partial a^l}{\partial W^l} = 
+\frac{\partial \Sigma^l}{\partial W^l} = 
+\frac{\partial \Sigma^l}{\partial z^l} \cdot \frac{\partial z^l}{\partial W^l} = 
+\frac{\partial \Sigma^l}{\partial z^l} \cdot \frac{\partial \Phi^l}{\partial W^l} = 
+\hat\Sigma^l(z^l) \cdot a^{l-1}
 \]
 
-Symmetrically we get
+Symmetrically, we calculate another important derivative
 \[
-\frac{\partial a^l}{\partial a^{l-1}} = \hat\Sigma^l(z^l) \cdot W^l
+\frac{\partial a^l}{\partial a^{l-1}} = 
+\frac{\partial \Sigma^l}{\partial a^{l-1}} = 
+\frac{\partial \Sigma^l}{\partial z^l} \cdot \frac{\partial z^l}{\partial a^{l-1}} =
+\frac{\partial \Sigma^l}{\partial z^l} \cdot \frac{\partial \Phi^l}{\partial a^{l-1}} =  
+\hat\Sigma^l(z^l) \cdot W^l
+% \frac{\partial a^l}{\partial a^{l-1}} = \hat\Sigma^l(z^l) \cdot W^l
 \]
 
-If $\Sigma(x)=\frac{1}{1+e^{-x}}$ then
-\[
-\frac{d\Sigma}{dx} = - \frac{-e^{-x}}{(1+e^{-x})^2} = \frac{(1 - 1) + e^{-x}}{(1+e^{-x})^2} = 
-\]
+\subparagraph{Activation functions}
+\begin{itemize}
+  \item Standard logistic (Sigmoid function) \begin{align}
+\Sigma(x) &= \frac{1}{1+e^{-x}} \\
+\frac{d\Sigma}{dx} &= - \frac{-e^{-x}}{(1+e^{-x})^2} 
+= \frac{(1 - 1) + e^{-x}}{(1+e^{-x})^2} = \\
+&= \frac{(1+e^{-x}) - 1}{(1+e^{-x})} \frac{1}{(1+e^{-x})} \\
+&= \left(1 - \frac{1}{1+e^{-x}}\right) \left(\frac{1}{1+e^{-x}}\right) \\
+\left. \frac{d\Sigma}{dx}\right|_{x=z^l} &= \Sigma(z^l)(1 - \Sigma(z^l)) 
+= a^l(1 - a^l)
+\end{align}
+\item Hyperbolic tangent \begin{align}
+  \Sigma(x) &= \tanh (x) \\
+  \frac{d\Sigma}{dx} &=1 - \tanh^2 (x)
+\end{align}
+\item Rectified linear unit (ReLU) \begin{align}
+  \Sigma(x) &= \max (0, x)\\
+  \frac{d\Sigma}{dx} &= \begin{cases}
+    0, & x < 0 \\
+    \emptyset, & x = 0 \\
+    1, & x > 0
+  \end{cases}
+\end{align}
+\item Leaky ReLU - possible positive gradient even when the unit is not active \begin{align}
+  \Sigma(x) &= \begin{cases}
+    c x, & x \leqslant 0 \\
+    x, & x > 0
+  \end{cases} \\
+  \frac{d\Sigma}{dx} &= \begin{cases}
+    c, & x \leqslant 0 \\
+    1, & x > 0
+  \end{cases}
+\end{align}
+Usually one chooses $0 < c < 1$
+\end{itemize}
 
-\[
-= \frac{(1+e^{-x}) - 1}{(1+e^{-x})} \frac{1}{(1+e^{-x})} = \left(1 - \frac{1}{1+e^{-x}}\right) \left(\frac{1}{1+e^{-x}}\right)
-\]
-
-\[
-\left. \frac{d\Sigma}{dx}\right|_{x=z^l} = \Sigma(z^l)(1 - \Sigma(z^l)) = a^l(1 - a^l)
-\]
-
-In the beginning we know only $\frac{\partial c}{\partial a^l}$ when $l=k$ ($c_{xy}$ - quadratic cost)
+Back prapagation starts from the last layer $l=k$, thus on the first step the known value is
 \[
 \frac{\partial c}{\partial a^k} = (a^k - y) =: \delta^k
 \]
+when $c_{xy}$ is a quadratic cost function, and
+\[
+\frac{\partial c}{\partial a^k} = \biggl(-\frac{y}{a^k}+\frac{1-y}{1-a^k} \biggr) =: \delta^k
+\]
+when $c_{xy}$ is a cross entropy cost function.
 
-For the following layers we calculate it step by step back
+For the following layers we calculate it step by step
 \[
 \delta^{l-1} = \frac{\partial c}{\partial a^{l-1}} = \frac{\partial c}{\partial a^l} \frac{\partial a^l}{\partial a^{l-1}} = \delta^l \hat\Sigma(z^l)W^l = \delta^l a^l(1-a^l)W^l
 \]
@@ -276,6 +369,20 @@ a^2 &= \Sigma(z^2) \\
 \delta^1 &= \delta^2 (a^2 (1-a^2 )) W^2 \\
 \frac{\partial c}{\partial W^1} &= \delta^1 (a^1 (1-a^1) ) a^0
 \end{align}
+
+And in vectorized form when training samples grouped in batches. $\circ$ denotes the Hadamard product.
+\begin{align}
+A^0 &= X \\
+Z^1 &= W^1 \cdot X \\
+A^1 &= \Sigma(Z^1) \\
+Z^2 &= W^2 \cdot A^1 \\
+A^2 &= \Sigma(Z^2) \\
+\Delta^2 &= A^2 - Y \\
+\frac{\partial c}{\partial W^2} &= (\Delta^2 \circ [A^2 \circ (1-A^2) ] ) \cdot A^1 \\
+\Delta^1 &= (\Delta^2 \circ [A^2 \circ (1-A^2 )] ) \cdot W^2 \\
+\frac{\partial c}{\partial W^1} &= (\Delta^1 \circ [A^1 \circ (1-A^1) ] ) \cdot A^0
+\end{align}
+  
 
 \paragraph{Matrix notation}
 Again repeat definitions from \cite{Karner:2022}.
