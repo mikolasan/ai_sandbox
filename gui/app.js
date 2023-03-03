@@ -62,7 +62,7 @@ container.pivot.y = container.height / 2;
 let robot = PIXI.Sprite.from('robot-64.png');
 robot.x = 2 * x_cell;
 robot.y = 2 * y_cell;
-// container.addChild(robot);
+container.addChild(robot);
 
 // // Add a ticker callback to move the sprite back and forth
 // let elapsed = 0.0;
@@ -74,10 +74,23 @@ robot.y = 2 * y_cell;
 
 const player = PIXI.Sprite.from("aim.png");
 player.anchor.set(0.5);
-player.x = app.screen.width / 2;
-player.y = app.screen.height / 2;
+player.x = app.screen.width / 2 - robot.x;
+player.y = app.screen.height / 2 - robot.y;
 
 app.stage.addChild(player);
+
+let hint = new PIXI.Graphics();
+hint
+.lineStyle(thickness, 0x000000)
+.moveTo(player.x, player.y)
+.lineTo(player.x + robot.x, player.y + robot.y);
+app.stage.addChild(hint);
+
+const basicText = new PIXI.Text('???');
+basicText.x = 50;
+basicText.y = 100;
+
+app.stage.addChild(basicText);
 
 // mouse interactions
 app.stage.hitArea = app.screen;
@@ -86,4 +99,22 @@ app.stage.on('mousemove', function(e) {
   let pos = e.data.global;
   player.x = pos.x - 10;
   player.y = pos.y - 10;
+
+  const [x1, y1, x2, y2] = [player.x, player.y, app.screen.width / 2, app.screen.height / 2]
+  hint.clear();
+  hint
+  .lineStyle(thickness, 0x000000)
+  .moveTo(x1, y1)
+  .lineTo(x2, y2);
+
+  let d_x = x2 - x1;
+  let d_y = y2 - y1;
+  let a = Math.atan(-d_y / d_x);
+  if (x1 <= x2) {
+    a += Math.PI;
+  } else if (y1 > y2) {
+    a += 2 * Math.PI;
+  }
+  basicText.text = `${a * 180 / Math.PI}`
 })
+
