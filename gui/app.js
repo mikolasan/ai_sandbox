@@ -60,9 +60,9 @@ container.pivot.y = container.height / 2;
 
 // Create the sprite and add it to the stage
 let robot = PIXI.Sprite.from('robot-64.png');
-robot.x = 0;
-robot.y = 0;
-container.addChild(robot);
+robot.x = 2 * x_cell;
+robot.y = 2 * y_cell;
+// container.addChild(robot);
 
 // // Add a ticker callback to move the sprite back and forth
 // let elapsed = 0.0;
@@ -70,3 +70,20 @@ container.addChild(robot);
 //   elapsed += delta;
 //   sprite.x =  100.0 + Math.cos(elapsed/50.0) * 100.0;
 // });
+
+
+const player = PIXI.Sprite.from("aim.png");
+player.anchor.set(0.5);
+player.x = app.screen.width / 2;
+player.y = app.screen.height / 2;
+
+app.stage.addChild(player);
+
+// mouse interactions
+app.stage.hitArea = app.screen;
+app.stage.interactive = true;
+app.stage.on('mousemove', function(e) {
+  let pos = e.data.global;
+  player.x = pos.x - 10;
+  player.y = pos.y - 10;
+})
