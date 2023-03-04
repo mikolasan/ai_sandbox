@@ -1,0 +1,17 @@
+{
+  "name": "ai-sandbox",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^4.1.4"
+  },
+  "dependencies": {
+    "pixi.js": "^7.1.4"
+  }
+}
