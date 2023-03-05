@@ -15,7 +15,7 @@ const calc_angle = (x1, y1, x2, y2) => {
   } else if (y1 > y2) {
     a += 2 * Math.PI;
   }
-  return a;
+  return a * 180 / Math.PI;
 }
 
 const y_cell = 64;
