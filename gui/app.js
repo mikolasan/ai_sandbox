@@ -116,11 +116,10 @@ hint
 .lineTo(player.x + robot.x, player.y + robot.y);
 container.addChild(hint);
 
-// const basicText = new PIXI.Text('???');
-// basicText.x = 50;
-// basicText.y = 100;
-
-// app.stage.addChild(basicText);
+const basicText = new PIXI.Text('???');
+basicText.x = 50;
+basicText.y = 100;
+app.stage.addChild(basicText);
 
 let path = findPath(grid[robot_position[0]][robot_position[1]], grid[final_position[0]][final_position[1]])
 let linePath = [];
@@ -162,17 +161,21 @@ app.stage.on('mousemove', function(e) {
   let y = pos.y - container.y / 2
   player.x = x - 50;
   player.y = y - 10;
-  final_position[0] = Math.floor((x - x_cell + 10) / x_cell)
-  final_position[1] = Math.floor(y / y_cell)
+  let n_x = Math.floor((x - x_cell + 10) / x_cell)
+  let n_y = Math.floor(y / y_cell)
+  if (n_x < 0 || n_x >= grid.length || n_y < 0 || n_y >= grid[n_x].length)
+    return;
+  
+  final_position[0] = n_x
+  final_position[1] = n_y
   
   linePath.length = 0;
-  let path = findPath(grid[robot_position[0]][robot_position[1]], grid[final_position[0]][final_position[1]])
-  for (let i = 0; i < path.length; ++i) {
-    linePath.push({
-      x: path[i].x * x_cell ,//+ x_cell / 2,
-      y: path[i].y * y_cell //+ y_cell / 2
-    });
-  }
+  let start = grid[robot_position[0]][robot_position[1]]
+  let goal = grid[final_position[0]][final_position[1]]
+  let path = findPath(start, goal)
+  linePath = path.map((node) => {
+    return {x: node.x * x_cell, y: node.y * y_cell}
+  })
 
   const [x1, y1, x2, y2] = [player.x, player.y, robot.x + x_cell / 2, robot.y + y_cell / 2]
   hint.clear();
@@ -183,5 +186,17 @@ app.stage.on('mousemove', function(e) {
 
   // let a = calc_angle(x1, y1, x2, y2);
   // let d = calc_distance(x1, y1, x2, y2);
+  let next_step = path.reverse()[1]
+  if (!next_step)
+    return;
+    
+  let name_change = {
+    "2:3": "down",
+    "3:2": "right",
+    "1:2": "left",
+    "2:1": "up"
+  }
+  
   // basicText.text = `${a * 180 / Math.PI} - ${d}`
+  basicText.text = `${name_change[next_step.coord]}`
 })

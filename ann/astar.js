@@ -58,7 +58,11 @@ class Node {
         if (this.y + dir[i][1] < 0 || this.y + dir[i][1] > this.map[x].length)
           continue;
 
-        var p = this.map[this.x + dir[i][0]][this.y + dir[i][1]];
+        let n_x = this.x + dir[i][0];
+        let n_y = this.y + dir[i][1];
+        if (n_x < 0 || n_x >= this.map.length || n_y < 0 || n_y >= this.map[n_x].length)
+          continue;
+        var p = this.map[n_x][n_y];
         // console.log(p)
         if (p.wall && p != goal)
           continue;
