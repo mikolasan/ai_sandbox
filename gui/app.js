@@ -1,9 +1,21 @@
-import { calc_angle, calc_distance, grid, x_cell, y_cell, x_lines, y_lines } from '../ann/world.js';
-import { findPath } from '../ann/astar.js';
 import * as PIXI from 'pixi.js';
+import axios from 'axios';
+
+import { 
+  calc_angle, 
+  calc_distance, 
+  grid, 
+  x_cell, 
+  y_cell, 
+  x_lines, 
+  y_lines 
+} from '../ann/world.js';
+import { findPath } from '../ann/astar.js';
 
 const robot_position = [2, 2];
 const final_position = [0, 0];
+let aim_update_time = 0
+const aim_update_delay = 60;
 
 PIXI.Graphics.prototype.drawDashedPath = function(path, x, y, dash, gap, offsetPercentage){
   var i;
@@ -93,6 +105,9 @@ container.y = app.screen.height / 2;
 // Center bunny sprite in local container coordinates
 container.pivot.x = container.width / 2;
 container.pivot.y = container.height / 2;
+const container_left = app.screen.width / 2 - container.width / 2;
+const container_top = app.screen.height / 2 - container.height / 2;
+// console.log(container_left, container_top)
 
 // Create the sprite and add it to the stage
 let robot = PIXI.Sprite.from('robot-64.png');
@@ -100,20 +115,19 @@ robot.x = robot_position[0] * x_cell;
 robot.y = robot_position[1] * y_cell;
 container.addChild(robot);
 
-
-const player = PIXI.Sprite.from("aim.png");
-player.anchor.set(0.5);
-player.x = final_position[0];
-player.y = final_position[1];
-
-// app.stage.addChild(player);
-container.addChild(player);
+// aim
+const aim = PIXI.Sprite.from("aim.png");
+aim.anchor.set(0.5);
+aim.x = final_position[0];
+aim.y = final_position[1];
+// app.stage.addChild(aim);
+container.addChild(aim);
 
 let hint = new PIXI.Graphics();
 hint
 .lineStyle(thickness, 0x000000)
-.moveTo(player.x, player.y)
-.lineTo(player.x + robot.x, player.y + robot.y);
+.moveTo(aim.x, aim.y)
+.lineTo(aim.x + robot.x, aim.y + robot.y);
 container.addChild(hint);
 
 const basicText = new PIXI.Text('???');
@@ -133,14 +147,15 @@ for (let i = 0; i < path.length; ++i) {
 // linePath.push({x:-50, y:50});
 // linePath.push({x:50, y:50});
 
-
 var body = new PIXI.Graphics();
 body.x = container.x - robot.x;
 body.y = container.y - robot.y;
 app.stage.addChild(body);
 
 let elapsed = 0.0
-app.ticker.add((delta) => {
+let last_mouse_event
+
+const process = (delta) => {
   body.clear();
   body.lineStyle(2, 0xFFFFFF);
   
@@ -149,23 +164,48 @@ app.ticker.add((delta) => {
     elapsed -= 1.0;
   }
   body.drawDashedPath(linePath, 0, 0, 10, 5, elapsed);
-})
 
+  aim_update_time += delta;
+  if (aim_update_time > aim_update_delay)
+    on_mouse_move(last_mouse_event);
+}
 
-// mouse interactions
-app.stage.hitArea = app.screen;
-app.stage.interactive = true;
-app.stage.on('mousemove', function(e) {
+const on_mouse_move = async (e) => {
+  if (!e) return;
   let pos = e.data.global;
-  let x = pos.x - container.x / 2
-  let y = pos.y - container.y / 2
-  player.x = x - 50;
-  player.y = y - 10;
-  let n_x = Math.floor((x - x_cell + 10) / x_cell)
+  last_mouse_event = e;
+  let x = pos.x - container_left
+  let y = pos.y - container_top
+
+  aim.x = x;
+  aim.y = y;
+  
+  let n_x = Math.floor(x / x_cell)
   let n_y = Math.floor(y / y_cell)
   if (n_x < 0 || n_x >= grid.length || n_y < 0 || n_y >= grid[n_x].length)
     return;
+    
+  console.log(x, y, pos.x, pos.y, n_x, n_y)
+  const [x1, y1, x2, y2] = [aim.x, aim.y, robot.x + x_cell / 2, robot.y + y_cell / 2]
+  hint.clear();
+  hint
+  .lineStyle(thickness, 0xafdf70)
+  .moveTo(x1, y1)
+  .lineTo(x2, y2);
+
+  let a = calc_angle(x1, y1, x2, y2);
+  let d = calc_distance(x1, y1, x2, y2);
+
+  if (aim_update_time < aim_update_delay)
+    return;
   
+  aim_update_time = 0;
+
+  const response = await axios.post("http://localhost:8080/models/navigation/predict", {
+    "angle": a,
+    "distance": d
+  })
+
   final_position[0] = n_x
   final_position[1] = n_y
   
@@ -177,26 +217,30 @@ app.stage.on('mousemove', function(e) {
     return {x: node.x * x_cell, y: node.y * y_cell}
   })
 
-  const [x1, y1, x2, y2] = [player.x, player.y, robot.x + x_cell / 2, robot.y + y_cell / 2]
-  hint.clear();
-  hint
-  .lineStyle(thickness, 0xafdf70)
-  .moveTo(x1, y1)
-  .lineTo(x2, y2);
-
-  // let a = calc_angle(x1, y1, x2, y2);
-  // let d = calc_distance(x1, y1, x2, y2);
   let next_step = path.reverse()[1]
   if (!next_step)
     return;
     
-  let name_change = {
-    "2:3": "down",
-    "3:2": "right",
-    "1:2": "left",
-    "2:1": "up"
+  let direction = response.data.direction
+  if (direction == 'left') {
+    robot_position[0] -= 1
+  } else if (direction == 'right') {
+    robot_position[0] += 1
+  } else if (direction == 'up') {
+    robot_position[1] -= 1
+  } else if (direction == 'down') {
+    robot_position[1] += 1
   }
+  robot.x = robot_position[0] * x_cell;
+  robot.y = robot_position[1] * y_cell;
   
   // basicText.text = `${a * 180 / Math.PI} - ${d}`
-  basicText.text = `${name_change[next_step.coord]}`
-})
+  basicText.text = `${response.data.direction}`
+}
+
+
+app.ticker.add(process);
+// mouse interactions
+app.stage.hitArea = app.screen;
+app.stage.interactive = true;
+app.stage.on('mousemove', on_mouse_move)
