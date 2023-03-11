@@ -23,14 +23,15 @@ class World(object):
       return -0.5
 
   def apply_action(self, agent, action):
+    x = agent.state['x_pos']
+    y = agent.state['y_pos']
     no_effect = {"agent": ""}
     bad_effect = {"agent": "hit the wall"}
-    if (agent.x_pos < 0 or agent.x_pos >= N
-        or agent.y_pos < 0 or agent.y_pos >= M):
+    if (x < 0 or x >= N or y < 0 or y >= M):
       effect = bad_effect
-    elif self.grid[agent.x_pos][agent.y_pos] == 'f':
+    elif self.grid[x][y] == 'f':
       effect = {"agent": "found food"}
-      self.grid[agent.x_pos][agent.y_pos] = '_'
+      self.grid[x][y] = '_'
       self.add_food_randomly()
     else:
       effect = no_effect

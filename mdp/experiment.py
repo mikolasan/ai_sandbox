@@ -1,5 +1,8 @@
 import time
+
 from agent import Agent
+from adp import ADP
+from mdp import MDP
 from world import World
 
 
@@ -9,7 +12,9 @@ def main():
   https://medium.com/@ngao7/markov-decision-process-value-iteration-2d161d50a6ff
   """
   world = World()
-  agent = Agent(world)
+  model = MDP(world)
+  learner = ADP()
+  agent = Agent(model, learner)
   
   iter = 0
   while agent.alive:

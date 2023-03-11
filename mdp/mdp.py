@@ -23,8 +23,8 @@ class MDP(object):
   #   return self.actions["go right"]
   
   def decide_on_next_action(self, agent, world):
-    x = agent.x_pos
-    y = agent.y_pos
+    x = agent.state['x_pos']
+    y = agent.state['y_pos']
     if x == 0 and y == 0:
       print('rule: if you see a wall, then turn left')
       action = Actions.go_down
