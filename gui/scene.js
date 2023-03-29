@@ -50,8 +50,9 @@ const shadowTexture = new THREE.CanvasTexture( canvas );
 const shadowMaterial = new THREE.MeshBasicMaterial( { map: shadowTexture } );
 // const shadowGeo = new THREE.PlaneGeometry( 30, 30, 1, 1 );
 
-// box
-const geometry = new THREE.BoxGeometry( 5, 5, 5 );
+let r = 5
+// disk
+const geometry = new THREE.CylinderGeometry( r, r, 1, 32 );
 const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
 
 const color = new THREE.Color();
@@ -78,6 +79,7 @@ const wireframeMaterial = new THREE.MeshBasicMaterial( {
 } );
 
 const cube = new THREE.Mesh(geometry, shadowMaterial);
+cube.rotation.x = Math.PI / 2
 scene.add( cube );
 
 const wireframe = new THREE.Mesh(geometry, wireframeMaterial);
@@ -98,8 +100,12 @@ let windowHalfY = window.innerHeight / 2;
 let last_timestamp = 0;
 
 let w = 0.1 * 360 / (2 * Math.PI)
-let r = 0.2
-let alpha = -0.2
+
+let F = 100
+let m = 10
+let acc = - F / m
+// let alpha = -0.2
+let alpha = acc / r
 let t_max = - w / alpha
 let t = 0
 console.log("t_max", t_max)
@@ -108,13 +114,13 @@ function animate(timestamp) {
   const dt = timestamp - last_timestamp;
   last_timestamp = timestamp;
   // console.log(t); // 16
-  t += dt / 100;
+  t += dt / 1000;
   if (t <= t_max) {
     // console.log(cube.position.x, dt, x0 + v * t)
     let theta = w * t + 0.5 * alpha * t * t;
     cube.position.x = theta * r
     // cube.rotation.x += 0.01;
-    // cube.rotation.y += 0.01;
+    cube.rotation.y = -theta;
 
   }
   
