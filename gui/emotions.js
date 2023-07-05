@@ -16,6 +16,12 @@ if (root.length > 0) {
 
 let graphics = new PIXI.Graphics();
 
+let elapsed = 0.0
+let total_elapsed = 0.0
+let frame_counter = 0
+let frame_counter_start_time
+let fps = 0.0
+
 const level_x = 50;
 const level_y = 50;
 const level_border = 2;
@@ -48,7 +54,7 @@ const max_limit = 100 // K
 const normal_level = 50 // M
 const pump_value_default = 20 // N
 const growth_rate = 0.2 // r
-const decay_rate = 0.001 // s
+const decay_rate = 0.01 // s
 let level_value = normal_level;
 let pump_value = 0.0
 // let pump_time
@@ -73,9 +79,12 @@ modulator.y = 10
 button.addChild(modulator);
 button.buttonMode = true
 button.interactive = true;
+// button.cacheAsBitmap = true;
 app.stage.addChild(button)
 
-
+const basicText = new PIXI.Text("FPS: " + fps);
+basicText.x = 500;
+basicText.y = 10;
 
 // const process = (delta) => {
 //   total_elapsed += delta / 50
@@ -95,36 +104,50 @@ app.stage.addChild(button)
 //   }
 // }
 
-let elapsed = 0.0
-let total_elapsed = 0.0
-
-
 const process = (delta) => {
+  ++frame_counter;
+  if (!frame_counter_start_time) {
+    frame_counter_start_time = performance.now()
+  } else {
+    const now = performance.now()
+    if (now - frame_counter_start_time > 1000) {
+      frame_counter_start_time = now
+      fps = frame_counter
+      basicText.text = "FPS: " + fps
+      frame_counter = 0
+    }
+  }
+
   // total_elapsed += delta / 50
   if (pump_value > 0.0 || release_value > 0.0) {
-    elapsed = delta;
+    // elapsed = delta;
+    const prev_level = level_value
 
     let growth = 0.0
     let decay = 0.0
 
     growth = growth_rate * pump_value
-    if (Math.abs(growth) < 1e-2) {
-      // pump_time = 0.0
-      growth = 0.0
-    }
-    release_value += growth
     pump_value -= growth
+    release_value += growth
 
     decay = decay_rate * release_value
+    release_value -= decay
+
+    level_value += growth - decay;
+
+    if (Math.abs(growth) < 1e-2) {
+      growth = 0.0
+      pump_value = 0.0
+    }
+
     if (Math.abs(decay) < 1e-2) {
       decay = 0.0
       release_value = 0.0
     }
-
-    level_value += growth - decay;
-    release_value = level_value - normal_level
-
+    
     graphics = draw_bar(graphics, level_value)
+    // console.log(pump_value, release_value)
+
   }
 }
 
@@ -155,6 +178,11 @@ const on_button_clicked = function(e) {
   }
   // release_value = 0.0
 }
+
+
+
+app.stage.addChild(basicText);
+
 
 button.on('pointerdown', on_button_clicked)
 app.ticker.add(process);

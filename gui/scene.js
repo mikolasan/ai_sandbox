@@ -99,25 +99,29 @@ let windowHalfX = window.innerWidth / 2;
 let windowHalfY = window.innerHeight / 2;
 let last_timestamp = 0;
 
-let w = 0.1 * 360 / (2 * Math.PI)
+let w = 70 * (Math.PI / 30)
 
-let F = 100
-let m = 10
-let acc = - F / m
+const g = 9.8
+let d = 10
+let m = 5
+let F = m * g * d / r // resistance
+let I = 0.5 * m * r * r
+let acc = 0;//- F / m
 // let alpha = -0.2
-let alpha = acc / r
+let alpha = - F * r / I;//acc / r
 let t_max = - w / alpha
 let t = 0
-console.log("t_max", t_max)
+let theta_max = 0.5 * t_max * w
+console.log(t_max, theta_max, w, alpha)
 
 function animate(timestamp) {
   const dt = timestamp - last_timestamp;
   last_timestamp = timestamp;
   // console.log(t); // 16
-  t += dt / 1000;
+  t += dt / 2000;
   if (t <= t_max) {
-    // console.log(cube.position.x, dt, x0 + v * t)
     let theta = w * t + 0.5 * alpha * t * t;
+    // console.log(theta)
     cube.position.x = theta * r
     // cube.rotation.x += 0.01;
     cube.rotation.y = -theta;
