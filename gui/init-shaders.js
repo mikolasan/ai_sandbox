@@ -23,7 +23,7 @@ function loadShader(gl, type, source) {
 const vert_glsl = `#version 300 es
 void main() {
   gl_Position = vec4(0, 0, 0, 1);
-  gl_PointSize = 50.0;
+  gl_PointSize = 10.0;
 }`
 
 const frag_glsl = `#version 300 es

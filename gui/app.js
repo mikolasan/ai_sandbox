@@ -1,6 +1,7 @@
 import { initBuffers } from "./init-buffers.js";
 import { initShaders } from "./init-shaders.js";
 import { drawScene } from "./draw-scene.js";
+import { initCamera } from "./camera.js";
 
 function main() {
   const canvas = document.querySelector("#glcanvas");
@@ -15,13 +16,15 @@ function main() {
     return;
   }
 
-  // Here's where we call the routine that builds all the
-  // objects we'll be drawing.
-  // const buffers = initBuffers(gl);
+  const camera = initCamera(gl);
+  const buffers = initBuffers(gl);
   const shaders = initShaders(gl);
   // // Draw the scene
   // drawScene(gl, programInfo, buffers);
-  draw(gl, shaders)
+  const uniforms = {
+
+  }
+  draw(gl, shaders, uniforms)
 }
 
 function draw(gl, shaders, buffers) {
@@ -29,10 +32,10 @@ function draw(gl, shaders, buffers) {
   gl.clearDepth(1.0); // Clear everything
   gl.enable(gl.DEPTH_TEST); // Enable depth testing
   gl.depthFunc(gl.LEQUAL); // Near things obscure far things
-
   // Clear the canvas before we start drawing on it.
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   
+
   // let line = createLine(gl)
 
   // // Tell WebGL how to pull out the positions from the position
@@ -65,14 +68,12 @@ function draw(gl, shaders, buffers) {
   //   modelViewMatrix
   // );
 
-  // {
-  //   const offset = 0;
-  //   const vertexCount = 4;
-  //   gl.drawArrays(gl.TRIANGLE_STRIP, offset, vertexCount);
-  // }
-
   gl.useProgram(shaders);
-  gl.drawArrays(gl.POINTS, 0, 1) // draw 1 point
+  {
+    const offset = 0;
+    const vertexCount = 4;
+    gl.drawArrays(gl.TRIANGLE_STRIP, offset, vertexCount);
+  }
 
 }
 

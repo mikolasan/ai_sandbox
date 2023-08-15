@@ -1,6 +1,7 @@
 """
 Read this: http://incompleteideas.net/book/ebook/node41.html
 Wrong (?): https://medium.com/@ngao7/markov-decision-process-policy-iteration-42d35ee87c82
+Sutton & Barto (page 94): https://web.stanford.edu/class/psych209/Readings/SuttonBartoIPRLBook2ndEd.pdf
 """
 import random
 
@@ -32,6 +33,12 @@ class PolicyIteration:
     return delta
   
   def improve_policy(self):
+    """
+    The process of making a new policy that improves on
+    an original policy, by making it greedy with respect to
+    the value function of the original policy, is called
+    policy improvement.
+    """
     policy_changed = False
     for state in self.states:
       old_action = self.policy[state]
@@ -40,7 +47,7 @@ class PolicyIteration:
         action_value[action] = self.value(state, action)
       print(f'from state {state} test new actions {action_value}')
       new_action = max(action_value, key=action_value.get) # argmax
-      self.policy[state] = new_action
+      self.policy[state] = new_action # greedy policy
       policy_changed = policy_changed or (new_action != old_action)
     return policy_changed
   
@@ -49,8 +56,7 @@ class PolicyIteration:
     for _state in self.states:
       prob = self.transition_func(state, action, _state)
       reward = self.reward_func(state, action, _state)
-      # new_value += reward + self.discount * prob* self.values[_state]
-      print(f' + {prob * (reward + self.discount * self.values[_state])} (p={prob}, r={reward}, g={self.discount}, v={self.values[_state]}')
+      # print(f' + {prob * (reward + self.discount * self.values[_state])} (p={prob}, r={reward}, g={self.discount}, v={self.values[_state]}')
       new_value += prob * (reward + self.discount * self.values[_state])
     return new_value
       
@@ -72,9 +78,9 @@ class PolicyIteration:
 if __name__ == '__main__':
   def reward(s, a, _s):
     if s == 3:
-      return 10 / (a + 1)
+      return 0
     else:
-      return -20
+      return -1
   
   def transition_model(s, a, _s):
     if abs(s - _s) == a:

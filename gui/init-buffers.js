@@ -1,3 +1,5 @@
+import createVAO from 'gl-vao'
+
 function initColorBuffer(gl) {
   const colors = [
     1.0,
