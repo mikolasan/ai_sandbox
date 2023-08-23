@@ -1,18 +1,19 @@
 import uuid
 import numpy as np
+# from scheduler import Scheduler
 
 
 class Sensor:
-  def __init__(self):
+  def __init__(self, scheduler):
     self.connections = []
     self.input = None
     self.id = uuid.uuid4()
+    self.scheduler = scheduler
 
   def set_input(self, input_pattern):
     self.input = input_pattern
 
   def activate(self, time):
-    print(f"Sensor({self.id}) time {time}")
     # if self.input > 0.5:
     for dendrite in self.connections:
       dendrite.activate(time, self.input)
@@ -23,10 +24,10 @@ class Dendrite:
     self.neuron = neuron
     self.strength = strength
 
-  def activate(self, time, input):
+  def activate(self, time, _input):
     if self.strength > 0.5:
       print(f"Dendrite({self.strength}) time {time}")
-      self.neuron.record_signal(time, input)
+      self.neuron.record_input(time, _input)
       self.strength += 0.1
   
   def plasticity_on(self):
@@ -46,20 +47,21 @@ class Axon:
   def activate(self, time, output):
     for connections in self.connections.values():
       for dendrite in connections:
-        dendrite.activate(time)
+        dendrite.activate(time, output)
   
   def plasticity_on(self):
     return self.neuron.plasticity_on
 
 
 class Neuron:
-  def __init__(self):
+  def __init__(self, scheduler):
     self.dendrites = []
     self.axon = Axon(self)
     self.plasticity_on = False
     self.inputs = {}
     self.id = uuid.uuid4()
     self.transform_fn = sum
+    self.scheduler = scheduler
 
   def add_connection(self, neuron, strength=None):
     dendrite = Dendrite(self, strength=(strength or np.random.uniform()))
@@ -75,16 +77,18 @@ class Neuron:
     # add connections to post-synaptic neuron (this)
     self.dendrites.append(dendrite)
 
-  def record_input(self, time, input):
+  def record_input(self, time, _input):
     if time not in self.inputs:
-      self.inputs[time] = [input]
+      self.inputs[time] = [_input]
     else:
-      self.inputs[time].append(input)
+      self.inputs[time].append(_input)
+    self.scheduler.add(time, self.activate)
 
   def activate(self, time):
-    print(f"Neuron({self.id}) time {time}")
     output = self.transform_fn(self.inputs[time])
-    self.axon.activate(time, output)
+    print(f"Neuron({self.id}) time {time}: output {output}")
+    del self.inputs[time]
+    self.axon.activate(time + 0.1, output)
 
 
 def print_conections(connections, prefix):
