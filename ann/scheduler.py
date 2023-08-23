@@ -2,7 +2,7 @@
 class Scheduler:
   def __init__(self) -> None:
     self.propagating = False
-    self.time = 0.0
+    self.time = 0
     self.scheduled = {}
 
   def start(self, starting_objects):
@@ -13,7 +13,7 @@ class Scheduler:
     
     while self.propagating:
       self.run_scheduled(self.time)
-      self.time += 0.1
+      self.time += 1
 
   def add(self, time, run_fn):
     if time not in self.scheduled:

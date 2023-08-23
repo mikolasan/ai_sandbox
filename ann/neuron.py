@@ -88,7 +88,13 @@ class Neuron:
     output = self.transform_fn(self.inputs[time])
     print(f"Neuron({self.id}) time {time}: output {output}")
     del self.inputs[time]
-    self.axon.activate(time + 0.1, output)
+    self.axon.activate(time + 1, output)
+
+
+class MultiplyingNeuron(Neuron):
+  def __init__(self, scheduler, multiplier):
+    super().__init__(scheduler)
+    self.transform_fn = lambda x: x[0] * multiplier
 
 
 def print_conections(connections, prefix):
