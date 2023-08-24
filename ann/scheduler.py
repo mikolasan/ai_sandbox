@@ -6,20 +6,20 @@ class Scheduler:
     self.scheduled = {}
 
   def start(self, starting_objects):
-    for obj in starting_objects:
-      obj.activate(self.time)
-    
     self.propagating = True
     
     while self.propagating:
+      # check inputs
+      for obj in starting_objects:
+        obj.activate(self.time)
       self.run_scheduled(self.time)
       self.time += 1
 
-  def add(self, time, run_fn):
+  def add(self, time, neuron):
     if time not in self.scheduled:
-      self.scheduled[time] = [run_fn]
-    else:
-      self.scheduled[time].append(run_fn)
+      self.scheduled[time] = [neuron]
+    elif neuron not in self.scheduled[time]:
+      self.scheduled[time].append(neuron)
 
   def run_scheduled(self, time):
     if time not in self.scheduled:
@@ -27,8 +27,8 @@ class Scheduler:
       self.propagating = False
       return
     
-    for run_fn in self.scheduled[time]:
-      run_fn(time)
+    for neuron in self.scheduled[time]:
+      neuron.activate(time)
     
 
 
