@@ -5,24 +5,7 @@ TODO: add description here. PRs are welcome ;)
 
 ## Install & Run
 
-### Backend
-
-Install dependencies
-
-```
-pip3 install --user -r requirements.txt
-```
-
-Run
-
-```
-???
-```
-
-
-### Frontend
-
-Install modules
+Pages from the `gui` folder are served by **vite**. Install modules
 
 ```
 yarn install
@@ -33,6 +16,32 @@ Run in develpment mode
 ```
 yarn dev
 ```
+
+And open in the browser http://localhost:5173/
+
+Other available pages:
+
+- http://localhost:5173/emotions.html - dynamic model of emotions (only one bar)
+- http://localhost:5173/index.html - artificial network visualization (WIP)
+- http://localhost:5173/inverse-dynamics.html - 3D environment with a rolling wheel (solving with Euler and Newton equations)
+- http://localhost:5173/qu-robot.html - visualization for **Qu Robot** project
+- http://localhost:5173/robot-go.html - robot on a grid following the aim by listening ANN from the backend
+
+
+### Backend for robot-go
+
+Install dependencies
+
+```
+pip3 install --user -r requirements.txt
+```
+
+Run
+
+```
+python run-backend.py
+```
+
 
 ## Links and notes
 
