@@ -307,14 +307,6 @@
     "@pixi/settings" "7.1.4"
     "@pixi/utils" "7.1.4"
 
-"@pixi/ui@^0.10.3":
-  version "0.10.3"
-  resolved "https://registry.yarnpkg.com/@pixi/ui/-/ui-0.10.3.tgz#bd3110fe54157b3d6f8cd1c47cb955a82f77fa2d"
-  integrity sha512-0oalBQ3bvVJQtQ1zDoWYaL8gQRpJebcjVonXJKCFQwwGKd4uNfQwxx+qRLdFcuYlPnrZiNPelaE6UgchF8qRtw==
-  dependencies:
-    tweedle.js "^2.1.0"
-    typed-signals "^2.5.0"
-
 "@pixi/utils@7.1.4":
   version "7.1.4"
   resolved "https://registry.yarnpkg.com/@pixi/utils/-/utils-7.1.4.tgz#96ab04a4814473ebec39562a5561fa1f952f2a96"
@@ -1013,22 +1005,12 @@ through2@^2.0.1:
     readable-stream "~2.3.6"
     xtend "~4.0.1"
 
-tweedle.js@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/tweedle.js/-/tweedle.js-2.1.0.tgz#523f5d50e5223c3c809b1aa627c6e9648e576d93"
-  integrity sha512-0ReQgVjepoZkE6t0upWNgCRbplHkQJQYk1LStXugwSR728GLFmGDRuaQJlxeC/iBlxud6+P1RdODjaO25vHAqw==
-
 type-check@~0.3.2:
   version "0.3.2"
   resolved "https://registry.yarnpkg.com/type-check/-/type-check-0.3.2.tgz#5884cab512cf1d355e3fb784f30804b2b520db72"
   integrity sha512-ZCmOJdvOWDBYJlzAoFkC+Q0+bUyEOS1ltgp1MGU03fqHG+dbi9tBFU2Rd9QKiDZFAYrhPh2JUf7rZRIuHRKtOg==
   dependencies:
     prelude-ls "~1.1.2"
-
-typed-signals@^2.5.0:
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/typed-signals/-/typed-signals-2.5.0.tgz#7be73505c2ee0dc4e43f1c4ee002c855796bd89a"
-  integrity sha512-m9lHc3eBCJerXYdx+G0uWZihyUXdqTzzgOdqiDDsoUo75WjhFJH6vP5/6w/xhyu04zoxHUqgYhf9FEt85dk/Ng==
 
 typedarray@^0.0.6:
   version "0.0.6"
