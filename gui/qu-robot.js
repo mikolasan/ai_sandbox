@@ -15,7 +15,7 @@ const aim_update_delay = 60;
 let app = new PIXI.Application({
   width: 800,
   height: 640,
-  background: '#1099bb',
+  background: '#F4F3EE',
 });
 let root = document.getElementsByClassName("pixi-canvas");
 if (root.length > 0) {
@@ -30,28 +30,23 @@ const create_world = function(container, grid_world) {
   for (let y = 0; y < y_lines; y++) {
     for (let x = 0; x < x_lines; x++) {
       const state = grid_world[x][y];
-      if (state == 'W') {
-        let wall = PIXI.Sprite.from('wall.png');
+      if (state == 'M') {
+        let wall = PIXI.Sprite.from('mountains.png');
         wall.x = x * x_cell;
         wall.y = y * y_cell;
         container.addChild(wall);
       } else if (state == 'F') {
-        let free = PIXI.Sprite.from('road.png');
+        let free = PIXI.Sprite.from('snow.png');
         free.x = x * x_cell;
         free.y = y * y_cell;
         container.addChild(free);
-      } else if (state == 'S') {
-        let start = PIXI.Sprite.from('start.png');
-        start.x = x * x_cell;
-        start.y = y * y_cell;
-        container.addChild(start);
       } else if (state == 'H') {
-        let hole = PIXI.Sprite.from('hole.png');
+        let hole = PIXI.Sprite.from('waves.png');
         hole.x = x * x_cell;
         hole.y = y * y_cell;
         container.addChild(hole);
       } else if (state == 'G') {
-        let goal = PIXI.Sprite.from('finish.png');
+        let goal = PIXI.Sprite.from('igloo.png');
         goal.x = x * x_cell;
         goal.y = y * y_cell;
         container.addChild(goal);
@@ -104,7 +99,7 @@ const container_top = app.screen.height / 2 - container.height / 2;
 
 
 // Create the sprite and add it to the stage
-const robot = PIXI.Sprite.from('robot-64.png');
+const robot = PIXI.Sprite.from('dinosaur.png');
 container.addChild(robot);
 
 const move_robot = function(robot_position) {
@@ -112,18 +107,24 @@ const move_robot = function(robot_position) {
   robot.y = robot_position[1] * y_cell;
 }
 
-move_robot(response.data.loc);
-
-
 const label1 = new PIXI.Text('???');
 label1.x = 50;
 label1.y = 10;
 app.stage.addChild(label1);
 
 const label2 = new PIXI.Text('???');
-label2.x = 50;
-label2.y = 50;
+label2.x = 150;
+label2.y = 10;
 app.stage.addChild(label2);
+
+move_robot(response.data.loc);
+const draw_current_state = function(response) {
+  const meta_state = response.data.meta_state
+  label1.text = `~ ${meta_state[3]} ~\n${meta_state[1]} ${meta_state[0]} ${meta_state[2]}\n~ ${meta_state[4]} ~`;
+  label2.text = response.data.action_prob.join(" , ")
+}
+
+draw_current_state(response);
 
 // step button
 const button = new PIXI.Container();
@@ -147,7 +148,7 @@ app.stage.addChild(button);
 const on_button_clicked = async (e) => {
   const response = await axios.post("http://localhost:8080/step");
   move_robot(response.data.loc);
-  label1.text = response.data.meta_state.join(" ")
+  draw_current_state(response);
   label2.text = response.data.action_prob.join(" , ")
 }
 button.on('pointerdown', on_button_clicked)
