@@ -85,6 +85,53 @@ const container = new PIXI.Container();
 app.stage.addChild(container);
 create_world(container, grid_world);
 
+// Create the sprite and add it to the stage
+const robot = PIXI.Sprite.from('dinosaur.png');
+container.addChild(robot);
+
+let arrows = new PIXI.Graphics();
+container.addChild(arrows);
+
+const draw_probs = function(probs) {
+  const thickness = 3;
+  const line_color = 0x000;
+  const x_lines = probs.length;
+  const y_lines = probs[0].length;
+  for (let y = 0; y < y_lines; y++) {
+    for (let x = 0; x < x_lines; x++) {
+      let state_probs = probs[x][y];
+      let middle_x = (x + 1.5) * x_cell;
+      let middle_y = (y + 1.5) * y_cell;
+      let north_prob = state_probs[0];
+      let south_prob = state_probs[1];
+      let east_prob = state_probs[2];
+      let west_prob = state_probs[3];
+      // north
+      arrows
+      .lineStyle(thickness, line_color)
+      .moveTo(middle_x, middle_y)
+      .lineTo(middle_x, middle_y - north_prob * y_cell * 0.5);
+      // south
+      arrows
+      .lineStyle(thickness, line_color)
+      .moveTo(middle_x, middle_y)
+      .lineTo(middle_x, middle_y + south_prob * y_cell * 0.5);
+      // east
+      arrows
+      .lineStyle(thickness, line_color)
+      .moveTo(middle_x, middle_y)
+      .lineTo(middle_x + east_prob * x_cell * 0.5, middle_y);
+      // west
+      arrows
+      .lineStyle(thickness, line_color)
+      .moveTo(middle_x, middle_y)
+      .lineTo(middle_x - west_prob * x_cell * 0.5, middle_y);
+    }
+  }
+}
+
+draw_probs(response.data.probs);
+
 // Move container to the center
 container.x = app.screen.width / 2;
 container.y = app.screen.height / 2;
@@ -98,9 +145,7 @@ const container_top = app.screen.height / 2 - container.height / 2;
 
 
 
-// Create the sprite and add it to the stage
-const robot = PIXI.Sprite.from('dinosaur.png');
-container.addChild(robot);
+
 
 const move_robot = function(robot_position) {
   robot.x = robot_position[0] * x_cell;
@@ -149,6 +194,7 @@ const on_button_clicked = async (e) => {
   const response = await axios.post("http://localhost:8080/step");
   move_robot(response.data.loc);
   draw_current_state(response);
+  draw_probs(response.data.probs);
   label2.text = response.data.action_prob.join(" , ")
 }
 button.on('pointerdown', on_button_clicked)
