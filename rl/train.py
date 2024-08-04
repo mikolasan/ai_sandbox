@@ -11,7 +11,8 @@ from game import SnakeGameAI
 
 
 # if GPU is to be used
-device = torch.device(
+device = "cpu"
+a = torch.device(
     "cuda" if torch.cuda.is_available() else
     "mps" if torch.backends.mps.is_available() else
     "cpu"

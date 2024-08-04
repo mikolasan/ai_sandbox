@@ -12,7 +12,7 @@ from replay import ReplayMemory, Transition
 import math
 
 STATE_LAYERS = 1 # snake, food
-TIME_SEQUENCE = 3 # to understand direction
+TIME_SEQUENCE = 6 # to understand direction
 
 N_HIDDEN_NEURONS = 32
 N_HIDDEN_NEURONS_2 = 12
@@ -21,7 +21,7 @@ N_ACTIONS = 3
 N_GAMES_FULL_EXPLORATION = 100
 
 MAX_MEMORY = 100_000
-BATCH_SIZE = 10000
+BATCH_SIZE = 1000
 LR = 0.0005
 
 class DeepAgent:
@@ -57,26 +57,26 @@ class DeepAgent:
         return new_seq.flatten()
 
     def remember(self, *args):
-        self.buffer.append(Transition(*args))
-        # self.memory.push(*args)
+        # self.buffer.append(Transition(*args))
+        self.memory.push(*args)
     
     def train_long_memory(self):
-        self.time_seq = torch.zeros(TIME_SEQUENCE, self.input_size)
+        self.time_seq = torch.zeros(TIME_SEQUENCE, self.input_size, device=self.device)
         self.n_moves = 0
         
-        if len(self.buffer) > 0:
-            total_reward = 0.0
-            for t in self.buffer:
-                total_reward += t.reward
-            print(f'Total reward: {total_reward}')
-            # if total_reward > -50.0:
-            #     p = random.random()
-            #     if p > 0.3:
-            #         self.buffer.clear()
-            #         return
-            for t in self.buffer:
-                self.memory.memory.append(t)
-            self.buffer.clear()
+        # if len(self.buffer) > 0:
+        #     total_reward = 0.0
+        #     for t in self.buffer:
+        #         total_reward += t.reward
+        #     # print(f'Total reward: {total_reward}')
+        #     # if total_reward > -50.0:
+        #     #     p = random.random()
+        #     #     if p > 0.3:
+        #     #         self.buffer.clear()
+        #     #         return
+        #     for t in self.buffer:
+        #         self.memory.memory.append(t)
+        #     self.buffer.clear()
         
         if len(self.memory) < BATCH_SIZE:
             return
