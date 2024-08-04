@@ -29,7 +29,8 @@ SPEED = 20
 
 class SnakeGameAI:
 
-    def __init__(self, w=BOARD_SIZE*BLOCK_SIZE, h=BOARD_SIZE*BLOCK_SIZE): # original values = w= 640, h= 480
+    def __init__(self, device, w=BOARD_SIZE*BLOCK_SIZE, h=BOARD_SIZE*BLOCK_SIZE): # original values = w= 640, h= 480
+        self.device = device
         self.board_shape = (BOARD_SIZE, BOARD_SIZE)
         self.w = w
         self.h = h
@@ -91,14 +92,14 @@ class SnakeGameAI:
         
         dir_id = torch.argmin(dist).item()
         if dir_id == 0:
-            a = torch.tensor([1,0,0])
+            a = torch.tensor([1,0,0], device=self.device)
         elif dir_id == 1:
-            a = torch.tensor([0,1,0])
+            a = torch.tensor([0,1,0], device=self.device)
         elif dir_id == 2:
-            a = torch.tensor([0,0,1])
+            a = torch.tensor([0,0,1], device=self.device)
         else:
             print('else case')
-            a = torch.tensor([1,0,0])
+            a = torch.tensor([1,0,0], device=self.device)
         return a
             
 
@@ -257,5 +258,5 @@ class SnakeGameAI:
         state = [dx, dy,
                  wall_left, wall_right, wall_up, wall_down,
                  tail_left, tail_right, tail_up, tail_down]
-        return torch.tensor(state)
+        return torch.tensor(state, device=self.device)
     

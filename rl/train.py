@@ -10,13 +10,12 @@ from game import SnakeGameAI
 # from walkenv import WalkEnv
 
 
-
 # if GPU is to be used
-# device = torch.device(
-#     "cuda" if torch.cuda.is_available() else
-#     "mps" if torch.backends.mps.is_available() else
-#     "cpu"
-# )
+device = torch.device(
+    "cuda" if torch.cuda.is_available() else
+    "mps" if torch.backends.mps.is_available() else
+    "cpu"
+)
 
 plot_score = []
 plot_q = []
@@ -27,9 +26,9 @@ record = 0
 episodes_length = {}
 
 # agent = AttentionAgent()
-agent = DeepAgent()
+agent = DeepAgent(device)
 # agent = QuAgent()
-game = SnakeGameAI()
+game = SnakeGameAI(device)
 # game = BlueRedEnv()
 # game = WalkEnvModelFree()
 
@@ -86,7 +85,7 @@ def step(state):
         new_state_to_save = agent.make_time_seq(new_state)
 
 
-    agent.remember(state_to_save, action, new_state_to_save, torch.tensor([reward]))
+    agent.remember(state_to_save, action, new_state_to_save, torch.tensor([reward], device=device))
     # agent.remember(state, action, new_state, torch.tensor([reward]))
     
     if done:

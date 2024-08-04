@@ -26,7 +26,8 @@ LR = 0.0005
 
 class DeepAgent:
 
-    def __init__(self):
+    def __init__(self, device):
+        self.device = device
         self.n_games = 0
         self.n_moves = 0
         self.epsilon = 0.8 # randomness
@@ -37,14 +38,14 @@ class DeepAgent:
         input_size = 10 #BOARD_SIZE * BOARD_SIZE * STATE_LAYERS
         self.input_size = input_size
         layer_size = [TIME_SEQUENCE * input_size, N_HIDDEN_NEURONS, N_HIDDEN_NEURONS_2, N_ACTIONS]
-        self.policy_net = DQN(layer_size)
-        self.target_net = DQN(layer_size)
+        self.policy_net = DQN(layer_size).to(device)
+        self.target_net = DQN(layer_size).to(device)
         self.target_net.load_state_dict(self.policy_net.state_dict())
-        self.trainer = SnakeDQN(self.policy_net, self.target_net, lr=LR, gamma=self.gamma)
-        self.time_seq = torch.zeros(TIME_SEQUENCE, input_size)
+        self.trainer = SnakeDQN(self.policy_net, self.target_net, lr=LR, gamma=self.gamma, device=device)
+        self.time_seq = torch.zeros(TIME_SEQUENCE, input_size, device=device)
     
     def make_time_seq(self, state, save=False):
-        new_seq = torch.tensor(self.time_seq)
+        new_seq = torch.tensor(self.time_seq, device=self.device)
         if self.n_moves < TIME_SEQUENCE:
             new_seq[self.n_moves, :] = state
         else:
@@ -100,7 +101,7 @@ class DeepAgent:
         #     return game.get_action()
         
         p = random.random()
-        action = torch.zeros((N_ACTIONS), dtype=torch.long)
+        action = torch.zeros((N_ACTIONS), dtype=torch.long, device=self.device)
         if p < self.epsilon: # reducing probalility of being random #was 200
             move = random.randint(0, N_ACTIONS - 1)
             # print(f'random move ({p}) {move}')

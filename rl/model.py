@@ -14,13 +14,13 @@ class DQN(nn.Module):
         super(DQN, self).__init__()
         in_states, h1_nodes, h2_nodes, out_actions = sizes
         self.layer1 = nn.Linear(in_states, h1_nodes)
-        # self.layer2 = nn.Linear(h1_nodes, h2_nodes)
+        self.layer2 = nn.Linear(h1_nodes, h2_nodes)
         # self.layer3 = nn.Linear(100, h2_nodes)
-        self.layer4 = nn.Linear(h1_nodes, out_actions)
+        self.layer4 = nn.Linear(h2_nodes, out_actions)
          
     def forward(self, x):
         x = F.relu(self.layer1(x))
-        # x = F.relu(self.layer2(x))
+        x = F.relu(self.layer2(x))
         # x = F.tanh(self.layer3(x))
         x = self.layer4(x)
         return x
@@ -36,7 +36,8 @@ class DQN(nn.Module):
 
 
 class SnakeDQN: # needs changing... episodes as a param?
-    def __init__(self, policy_net, target_net, lr, gamma):
+    def __init__(self, policy_net, target_net, lr, gamma, device):
+        self.device = device
         self.lr = lr   # 0.001         # learning rate (alpha)
         self.gamma = gamma
         self.policy_net = policy_net
@@ -65,7 +66,7 @@ class SnakeDQN: # needs changing... episodes as a param?
         # Compute a mask of non-final states and concatenate the batch elements
         # (a final state would've been the one after which simulation ended)
         non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
-                                            batch.next_state)), dtype=torch.bool)
+                                            batch.next_state)), dtype=torch.bool, device=self.device)
         non_final_next_states = [s.unsqueeze(0) for s in batch.next_state if s is not None]
         if len(non_final_next_states) > 0:
             non_final_next_states = torch.cat(non_final_next_states)
@@ -87,7 +88,7 @@ class SnakeDQN: # needs changing... episodes as a param?
         # on the "older" target_net; selecting their best reward with max(1).values
         # This is merged based on the mask, such that we'll have either the expected
         # state value or 0 in case the state was final.
-        next_state_values = torch.zeros(batch_size)
+        next_state_values = torch.zeros(batch_size, device=self.device)
         if len(non_final_next_states) > 0:
             with torch.no_grad():
                 v = self.target_net(non_final_next_states)
