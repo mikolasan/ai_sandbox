@@ -23,7 +23,7 @@ BLUE1 = (0, 0, 255)
 BLUE2 = (0, 100, 255)
 BLACK = (0,0,0)
 
-BOARD_SIZE = 6
+BOARD_SIZE = 12
 BLOCK_SIZE = 20
 SPEED = 20
 
@@ -136,7 +136,7 @@ class SnakeGameAI:
             self.snake.insert(0, self.head)
         else:
             game_over = True
-            reward = -100.0
+            reward = -1.0
             
             # 5. update ui and clock
             if ENABLE_WINDOW:
@@ -147,11 +147,11 @@ class SnakeGameAI:
         # 4. place new food or just move
         if self.head == self.food:
             self.score += 1
-            reward = 100.0
+            reward = 1.0
             self._place_food()
         else:
             self.snake.pop()
-            reward = 0.0#-1.0 #min(-1.0, -0.1 * self.frame_iteration + self.score * 20)
+            reward = -0.01 #min(-1.0, -0.1 * self.frame_iteration + self.score * 20)
         
         # 5. update ui and clock
         if ENABLE_WINDOW:
@@ -168,8 +168,8 @@ class SnakeGameAI:
         if pt.x > self.w - BLOCK_SIZE or pt.x < 0 or pt.y > self.h - BLOCK_SIZE or pt.y < 0:
             return True
         # hits itself
-        # if pt in self.snake[1:]:
-        #     return True
+        if pt in self.snake[1:]:
+            return True
 
         return False
 
@@ -222,17 +222,14 @@ class SnakeGameAI:
         return p
    
     def get_current_state(self) -> torch.Tensor:
-        board = torch.zeros((BOARD_SIZE, BOARD_SIZE))
-
         # apple
-        # BOARD_SIZE + 
-        apple_coord = (int(self.food.y // BLOCK_SIZE), int(self.food.x // BLOCK_SIZE))
+        # apple_coord = (int(self.food.y // BLOCK_SIZE), int(self.food.x // BLOCK_SIZE))
         # print(f'apple {apple_coord}')
-        board[apple_coord[0]][apple_coord[1]] = 1.0
+        # board[apple_coord[0]][apple_coord[1]] = 1.0
         # snake's head
-        head_coord = (int(self.head.y // BLOCK_SIZE), int(self.head.x // BLOCK_SIZE))
+        # head_coord = (int(self.head.y // BLOCK_SIZE), int(self.head.x // BLOCK_SIZE))
         # print(f'head {head_coord}')
-        board[head_coord[0], head_coord[1]] = 0.5
+        # board[head_coord[0], head_coord[1]] = 0.5
         # body
         # for part in self.snake[1:]:
             # snake_coord = (int(part.y // BLOCK_SIZE), int(part.x // BLOCK_SIZE))
@@ -246,8 +243,19 @@ class SnakeGameAI:
         # board[0] = apple_coord[0] - head_coord[0]
         # board[1] = apple_coord[1] - head_coord[1]
         
-        return board
-        
-        
-    
+        pos = self.head
+        dx = (pos[0] - self.food[0]) / BLOCK_SIZE
+        dy = (pos[1] - self.food[1]) / BLOCK_SIZE
+        wall_left = 1.0 if pos[0] - 1 < 0 else 0.0
+        wall_right = 1.0 if pos[0] + 1 < 0 else 0.0
+        wall_up = 1.0 if pos[1] - 1 >= BOARD_SIZE else 0.0
+        wall_down = 1.0 if pos[1] + 1 >= BOARD_SIZE else 0.0
+        tail_left = 1.0 if Point(pos[0] - 1, pos[1]) in self.snake[1:] else 0.0
+        tail_right = 1.0 if Point(pos[0] + 1, pos[1]) in self.snake[1:] else 0.0
+        tail_up = 1.0 if Point(pos[0], pos[1] - 1) in self.snake[1:] else 0.0
+        tail_down = 1.0 if Point(pos[0], pos[1] + 1) in self.snake[1:] else 0.0
+        state = [dx, dy,
+                 wall_left, wall_right, wall_up, wall_down,
+                 tail_left, tail_right, tail_up, tail_down]
+        return torch.tensor(state)
     

@@ -27,7 +27,8 @@ def plot(score, q, duration):
 
 
 def hist(episodes_length):
-    n, bins, patches = plt.hist(episodes_length, 
+    mylist = [key for key, val in episodes_length.items() for _ in range(val)]
+    n, bins, patches = plt.hist(mylist, 
                                 bins=50, density=True, alpha=0.75)
 
     plt.xlabel('Data')

@@ -11,6 +11,7 @@ Made it work in Python 3, PyTorch 1.11
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import numpy as np
 import matplotlib.pyplot as plt
 # %matplotlib inline
@@ -30,17 +31,16 @@ class XOR(nn.Module):
         self.linear2 = nn.Linear(2, output_dim)
     
     def forward(self, x):
-        x = self.linear1(x)
-        x = torch.sigmoid(x)
+        x = F.sigmoid(self.linear1(x))
         x = self.linear2(x)
         return x
 
 
 model = XOR()
 mseloss = nn.MSELoss() # mean squared error
-optimizer = torch.optim.SGD(model.parameters(), lr=0.2, momentum=0.0)
-# optimizer = torch.optim.Adam(model.parameters(), lr=0.03)
-N = 1000
+# optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.03)
+N = 3000
 loss_values = []
 accuracy_values = []
 model.train()

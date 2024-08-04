@@ -14,13 +14,13 @@ class DQN(nn.Module):
         super(DQN, self).__init__()
         in_states, h1_nodes, h2_nodes, out_actions = sizes
         self.layer1 = nn.Linear(in_states, h1_nodes)
-        self.layer2 = nn.Linear(h1_nodes, h2_nodes)
+        # self.layer2 = nn.Linear(h1_nodes, h2_nodes)
         # self.layer3 = nn.Linear(100, h2_nodes)
-        self.layer4 = nn.Linear(h2_nodes, out_actions)
+        self.layer4 = nn.Linear(h1_nodes, out_actions)
          
     def forward(self, x):
         x = F.relu(self.layer1(x))
-        x = F.relu(self.layer2(x))
+        # x = F.relu(self.layer2(x))
         # x = F.tanh(self.layer3(x))
         x = self.layer4(x)
         return x
@@ -80,6 +80,7 @@ class SnakeDQN: # needs changing... episodes as a param?
         q = self.policy_net(state_batch)
         a = action_batch.max(1).indices.view(batch_size, 1)
         state_action_values = q.gather(1, a)
+        # state_action_values = state_action_values.clip(min=-1.0, max=1.0)
 
         # Compute V(s_{t+1}) for all next states.
         # Expected values of actions for non_final_next_states are computed based
@@ -93,6 +94,7 @@ class SnakeDQN: # needs changing... episodes as a param?
                 next_state_values[non_final_mask] = v.max(1).values
         # Compute the expected Q values
         expected_state_action_values = (next_state_values.unsqueeze(1) * self.gamma) + reward_batch
+        # expected_state_action_values = expected_state_action_values.clip(min=-1.0, max=1.0)
 
         # print(expected_state_action_values)
         # loss = torch.mean(torch.zeros((batch_size, 1), requires_grad=True)) #
@@ -103,8 +105,6 @@ class SnakeDQN: # needs changing... episodes as a param?
 
         # Optimize the model
         loss.backward()
-        # In-place gradient clipping
-        # torch.nn.utils.clip_grad_value_(self.policy_net.parameters(), 100)
         self.optimizer.step()
         self.optimizer.zero_grad()
         

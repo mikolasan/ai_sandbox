@@ -12,17 +12,17 @@ from replay import ReplayMemory, Transition
 import math
 
 STATE_LAYERS = 1 # snake, food
-TIME_SEQUENCE = 1 # to understand direction
+TIME_SEQUENCE = 3 # to understand direction
 
 N_HIDDEN_NEURONS = 32
 N_HIDDEN_NEURONS_2 = 12
-N_ACTIONS = 4
+N_ACTIONS = 3
 
-N_GAMES_FULL_EXPLORATION = 500
+N_GAMES_FULL_EXPLORATION = 100
 
 MAX_MEMORY = 100_000
-BATCH_SIZE = 10
-LR = 0.0001
+BATCH_SIZE = 10000
+LR = 0.0005
 
 class DeepAgent:
 
@@ -30,11 +30,11 @@ class DeepAgent:
         self.n_games = 0
         self.n_moves = 0
         self.epsilon = 0.8 # randomness
-        self.gamma = 0.99 # discount rate was 0.95
+        self.gamma = 0.95 # discount rate was 0.95
         self.memory = ReplayMemory(MAX_MEMORY)
         self.buffer = deque([], maxlen=200)
         
-        input_size = BOARD_SIZE * BOARD_SIZE * STATE_LAYERS
+        input_size = 10 #BOARD_SIZE * BOARD_SIZE * STATE_LAYERS
         self.input_size = input_size
         layer_size = [TIME_SEQUENCE * input_size, N_HIDDEN_NEURONS, N_HIDDEN_NEURONS_2, N_ACTIONS]
         self.policy_net = DQN(layer_size)
