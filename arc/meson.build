@@ -17,6 +17,7 @@ cpp_args = [
 #subdir('deps')
 
 malstrom_src = [
+    'src/neuron.cpp',
     'src/main.cpp',
 ]
 malstrom_inc = include_directories(

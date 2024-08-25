@@ -15,4 +15,4 @@ struct Neuron {
   std::weak_ptr<Neuron> axon;
 };
 
-void create_network(const Array2D& input, const Array2D& output);
+void create_network(const std::vector<Example>& training_data);
