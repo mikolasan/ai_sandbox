@@ -57,8 +57,8 @@ def on_game_done(reward, score):
     plot_loss.append(agent.trainer.retrieve_avg_loss())
     agent.trainer.loss_vals = []
     
-    if agent.n_games % 1000 == 0:
-        plot(plot_score, plot_loss, plot_q)
+    if agent.n_games % 400 == 0:
+        plot(plot_score, plot_q, plot_duration)
 
     # hist(episodes_length)
     

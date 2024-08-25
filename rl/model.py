@@ -48,6 +48,12 @@ class SnakeDQN: # needs changing... episodes as a param?
         self.criterion = nn.MSELoss()
         self.loss_vals = []
         self.q_vals = []
+        
+        self.atoms = 50
+        self.v_min = -10.0
+        self.v_max = 10.0
+        self.support = torch.linspace(self.v_min, self.v_max, self.atoms).to(device=device)  # Support (range) of z
+        self.delta_z = (self.v_max - self.v_min) / (self.atoms - 1)
 
     def get_avg_q(self):
         if len(self.q_vals) > 0:
@@ -91,6 +97,27 @@ class SnakeDQN: # needs changing... episodes as a param?
         next_state_values = torch.zeros(batch_size, device=self.device)
         if len(non_final_next_states) > 0:
             with torch.no_grad():
+                pns = self.policy_net(non_final_next_states)
+                dns = self.support.expand_as(pns) * pns  # Distribution d_t+n = (z, p(s_t+n, ·; θonline))
+                argmax_indices_ns = dns.sum(2).argmax(1)  # Perform argmax action selection using online network: argmax_a[(z, p(s_t+n, a; θonline))]
+                
+                # Compute Tz (Bellman operator T applied to z)
+                Tz = returns.unsqueeze(1) + nonterminals * (self.gamma ** self.n) * self.support.unsqueeze(0)  # Tz = R^n + (γ^n)z (accounting for terminal states)
+                Tz = Tz.clamp(min=self.v_min, max=self.v_max)  # Clamp between supported values
+                # Compute L2 projection of Tz onto fixed support z
+                b = (Tz - self.v_min) / self.delta_z  # b = (Tz - Vmin) / Δz
+                l, u = b.floor().to(torch.int64), b.ceil().to(torch.int64)
+                # Fix disappearing probability mass when l = b = u (b is int)
+                l[(u > 0) * (l == u)] -= 1
+                u[(l < (self.atoms - 1)) * (l == u)] += 1
+
+                # Distribute probability of Tz
+                m = states.new_zeros(batch_size, self.atoms)
+                offset = torch.linspace(0, ((self.batch_size - 1) * self.atoms), batch_size).unsqueeze(1).expand(batch_size, self.atoms).to(actions)
+                m.view(-1).index_add_(0, (l + offset).view(-1), (pns_a * (u.float() - b)).view(-1))  # m_l = m_l + p(s_t+n, a*)(u - b)
+                m.view(-1).index_add_(0, (u + offset).view(-1), (pns_a * (b - l.float())).view(-1))  # m_u = m_u + p(s_t+n, a*)(b - l)
+
+
                 v = self.target_net(non_final_next_states)
                 next_state_values[non_final_mask] = v.max(1).values
         # Compute the expected Q values
