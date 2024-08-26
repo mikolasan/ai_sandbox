@@ -17,6 +17,7 @@ cpp_args = [
 #subdir('deps')
 
 malstrom_src = [
+    'src/arc.cpp',
     'src/neuron.cpp',
     'src/main.cpp',
 ]

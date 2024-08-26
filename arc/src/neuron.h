@@ -7,6 +7,8 @@
 struct Sensor {
   int value;
   std::tuple<int, int> pos;
+
+  void fire();
 };
 
 struct Neuron {

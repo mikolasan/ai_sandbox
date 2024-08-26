@@ -1,5 +1,10 @@
 #include <map>
 #include <string>
+#include <vector>
+
+#include "math.h"
+
+std::vector<Example> read_training_data(std::string task_id);
 
 // some round symbols take extra space,
 // so I'm replacing them with other symbols of the same color
