@@ -15,6 +15,10 @@ public:
   Scheduler() {}
   ~Scheduler() {}
 
+  size_t get_size() {
+    return tasks.size();
+  }
+  
   void main_loop() {
     bool running = true;
     TimePoint prev_now = Clock::now();
