@@ -1,11 +1,9 @@
-# Reimport necessary libraries since environment was reset
 import numpy as np
 import matplotlib.pyplot as plt
 
 # Random
 #np.random.seed(42)  # For reproducibility
 #signal_2d = np.random.randint(0, 11, size=(8, 8))
-
 
 # Create two 8x8 matrices: one with a horizontal line at the top, and one with a line at the bottom
 line_top = np.zeros((8, 8), dtype=int)
